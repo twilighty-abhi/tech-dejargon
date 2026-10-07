@@ -51,15 +51,56 @@ document.addEventListener('DOMContentLoaded', () => {
   let recognition = null;
   let currentQuizIndex = 0;
   let quizScore = 0;
+  let currentCategoryFilter = "all";
+  let currentSearchQuery = "";
 
-  // --- Initialize Widely Used Phrases Chips ---
+  // --- Initialize Widely Used Phrases Chips with Filtering & Search ---
   function renderChips() {
     phrasesChipsContainer.innerHTML = '';
-    JARGON_DATABASE.forEach(item => {
+
+    // Update count badges
+    const totalCount = JARGON_DATABASE.length;
+    const appsCount = JARGON_DATABASE.filter(x => x.category === "Open Source Apps").length;
+    const countAllEl = document.getElementById('cat-count-all');
+    const countAppsEl = document.getElementById('cat-count-apps');
+    if (countAllEl) countAllEl.textContent = totalCount;
+    if (countAppsEl) countAppsEl.textContent = appsCount;
+
+    const filtered = JARGON_DATABASE.filter(item => {
+      let matchCat = (currentCategoryFilter === 'all');
+      if (!matchCat) {
+        if (currentCategoryFilter === 'Infrastructure & Hosting') {
+          matchCat = item.category === 'Infrastructure & Hosting' || item.category === 'Automation & Workflows';
+        } else if (currentCategoryFilter === 'Software Philosophy') {
+          matchCat = item.category === 'Software Philosophy' || item.category === 'Websites & Tools';
+        } else if (currentCategoryFilter === 'Connectivity & Data') {
+          matchCat = item.category === 'Connectivity & Data';
+        } else {
+          matchCat = item.category === currentCategoryFilter;
+        }
+      }
+
+      const q = currentSearchQuery.toLowerCase().trim();
+      const matchSearch = !q || 
+        item.term.toLowerCase().includes(q) || 
+        item.category.toLowerCase().includes(q) ||
+        item.plainExplanation.toLowerCase().includes(q) ||
+        item.techPhrase.toLowerCase().includes(q);
+      return matchCat && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      phrasesChipsContainer.innerHTML = `<span style="font-size:0.85rem; color:#94A3B8; padding:8px 0;">No matching terms found. Try another search or filter!</span>`;
+      return;
+    }
+
+    filtered.forEach(item => {
       const chip = document.createElement('button');
-      chip.className = `phrase-chip ${item.id === currentActiveId ? 'active' : ''}`;
+      const isApp = item.category === "Open Source Apps";
+      chip.className = `phrase-chip ${item.id === currentActiveId ? 'active' : ''} ${isApp ? 'is-app' : ''}`;
       chip.textContent = item.term;
       chip.dataset.id = item.id;
+      chip.title = `${item.term} (${item.category})`;
       chip.addEventListener('click', () => {
         selectJargon(item.id);
       });
@@ -109,19 +150,30 @@ document.addEventListener('DOMContentLoaded', () => {
   function translateTechToPlain(text) {
     const lower = text.toLowerCase();
     
-    // Find matching item in database
+    // 1. Direct term, ID, or tech phrase match
     let matchedItem = JARGON_DATABASE.find(item => {
-      const termMatch = lower.includes(item.term.toLowerCase());
+      const termLower = item.term.toLowerCase();
       const idMatch = lower.includes(item.id.replace(/-/g, ' '));
+      const termMatch = lower.includes(termLower);
       const phraseMatch = item.techPhrase.toLowerCase().includes(lower);
       return termMatch || idMatch || phraseMatch;
     });
 
-    // Substring fallback check
+    // 2. Tokenized word match (handles "kobo", "odk", "ghost", "rag", "fms", "posthog")
     if (!matchedItem) {
       matchedItem = JARGON_DATABASE.find(item => {
-        const words = item.term.toLowerCase().split(/\s+/);
-        return words.some(w => w.length > 2 && lower.includes(w));
+        const words = item.term.toLowerCase().split(/[\s/()\-]+/);
+        return words.some(w => w.length >= 3 && lower.includes(w));
+      });
+    }
+
+    // 3. Question / reverse phrase match
+    if (!matchedItem) {
+      matchedItem = JARGON_DATABASE.find(item => {
+        if (!item.reversePhrase) return false;
+        const words = item.reversePhrase.toLowerCase().split(/\s+/);
+        const matchCount = words.filter(w => w.length > 3 && lower.includes(w)).length;
+        return matchCount >= 2;
       });
     }
 
@@ -740,6 +792,24 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  // --- Category Tabs & Search Event Listeners ---
+  document.querySelectorAll('#category-tabs .cat-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#category-tabs .cat-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentCategoryFilter = tab.dataset.cat;
+      renderChips();
+    });
+  });
+
+  const phrasesSearch = document.getElementById('phrases-search');
+  if (phrasesSearch) {
+    phrasesSearch.addEventListener('input', (e) => {
+      currentSearchQuery = e.target.value;
+      renderChips();
+    });
   }
 
   // --- Initial Launch ---

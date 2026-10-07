@@ -173,12 +173,30 @@
         </div>
       </div>
 
-      <!-- Widely Used Phrases Section -->
+      <!-- Widely Used Phrases & Open Source Apps Section -->
       <div class="phrases-section">
         <div class="phrases-header">
-          <span class="phrases-title">Widely Used Phrases</span>
-          <span class="phrases-hint">Click any phrase to de-jargonise instantly</span>
+          <div class="phrases-title-block">
+            <span class="phrases-title">Widely Used Phrases & Open Source Apps</span>
+            <span class="phrases-hint">Click any phrase or app to de-jargonise instantly</span>
+          </div>
+          <div class="phrases-search-wrapper">
+            <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="phrases-search" class="phrases-search-input" placeholder="Search jargon or apps (e.g. Ghost, RAG, Docker)..." aria-label="Search jargon">
+          </div>
         </div>
+
+        <!-- Category Tabs -->
+        <div class="category-tabs" id="category-tabs">
+          <button class="cat-tab active" data-cat="all">⭐ All (<span id="cat-count-all">56</span>)</button>
+          <button class="cat-tab" data-cat="Open Source Apps">🚀 Open Source Apps (<span id="cat-count-apps">17</span>)</button>
+          <button class="cat-tab" data-cat="Infrastructure & Hosting">⚙️ Cloud & Hosting</button>
+          <button class="cat-tab" data-cat="Security & Privacy">🔒 Security & Privacy</button>
+          <button class="cat-tab" data-cat="Connectivity & Data">📊 Data & Connectivity</button>
+          <button class="cat-tab" data-cat="AI & Modern Tech">🤖 AI & Modern Tech</button>
+          <button class="cat-tab" data-cat="Software Philosophy">💡 Tech Philosophy</button>
+        </div>
+
         <div class="phrases-chip-grid" id="phrases-chips">
           <!-- Populated by dictionary.js -->
         </div>
