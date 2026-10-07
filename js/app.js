@@ -634,89 +634,137 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-copy-card-text').addEventListener('click', () => {
     const quote = document.getElementById('modal-quote-text').innerText;
     const analogy = document.getElementById('modal-analogy-text').innerText;
-    const shareText = `Tech Jargon: ${quote}\nDe-jargonised: ${analogy}\n\nDe-jargonised at IDLIStack Annual Summit • https://idlistack.com`;
+    const shareText = `Tech Jargon: ${quote}\nDe-jargonised: ${analogy}\n\nDe-jargonised at Idlistack Annual Summit • https://idlistack.com`;
     
     navigator.clipboard.writeText(shareText).then(() => {
       showToast("Card text copied for sharing!");
     });
   });
 
+  let cachedLogoImg = null;
+  function loadIdlistackLogo() {
+    if (cachedLogoImg && cachedLogoImg.complete && cachedLogoImg.naturalWidth > 0) {
+      return Promise.resolve(cachedLogoImg);
+    }
+    return new Promise((resolve) => {
+      const existing = document.querySelector('.sc-logo') || document.querySelector('.brand-logo');
+      if (existing && existing.complete && existing.naturalWidth > 0) {
+        cachedLogoImg = existing;
+        resolve(existing);
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        cachedLogoImg = img;
+        resolve(img);
+      };
+      img.onerror = () => resolve(null);
+      img.src = 'assets/logo-black.png';
+    });
+  }
+
   document.getElementById('btn-download-card').addEventListener('click', () => {
-    // Generate downloadable PNG using HTML Canvas
+    // Generate high-resolution downloadable JPG using HTML Canvas
     generateCardImage();
   });
 
-  function generateCardImage() {
+  async function generateCardImage() {
+    const scale = 2; // Ultra-crisp 2x Retina resolution (2400 x 1260)
+    const baseWidth = 1200;
+    const baseHeight = 630;
     const canvas = document.createElement('canvas');
-    canvas.width = 1200;
-    canvas.height = 630;
+    canvas.width = baseWidth * scale;
+    canvas.height = baseHeight * scale;
     const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
 
-    // Background gradient
-    const grad = ctx.createLinearGradient(0, 0, 1200, 630);
+    // Opaque background gradient (essential for JPG compression)
+    const grad = ctx.createLinearGradient(0, 0, baseWidth, baseHeight);
     grad.addColorStop(0, '#FFFFFF');
     grad.addColorStop(1, '#FFF2F8');
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 1200, 630);
+    ctx.fillRect(0, 0, baseWidth, baseHeight);
 
-    // Decorative Pink Border
+    // Decorative Pink Outer Border
     ctx.strokeStyle = '#ED4690';
     ctx.lineWidth = 14;
     ctx.strokeRect(20, 20, 1160, 590);
 
-    // Branding Title
-    ctx.fillStyle = '#111827';
-    ctx.font = 'bold 44px Inter, sans-serif';
-    ctx.fillText('iDLisTACk by T4GC', 60, 95);
+    // Render Official Idlistack Logo
+    const logoImg = await loadIdlistackLogo();
+    if (logoImg) {
+      const logoH = 48;
+      const logoW = Math.round(logoH * (logoImg.naturalWidth / logoImg.naturalHeight || 2.79));
+      ctx.drawImage(logoImg, 60, 48, logoW, logoH);
+    } else {
+      ctx.fillStyle = '#111827';
+      ctx.font = 'bold 38px Inter, sans-serif';
+      ctx.fillText('Idlistack by T4GC', 60, 88);
+    }
+
+    // Top Right Pill Tag: #TechDejargon
+    ctx.fillStyle = '#FFF0F6';
+    ctx.strokeStyle = 'rgba(237, 70, 144, 0.45)';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, 970, 50, 170, 40, 20);
+    ctx.fill();
+    ctx.stroke();
 
     ctx.fillStyle = '#ED4690';
-    ctx.font = 'bold 24px Inter, sans-serif';
-    ctx.fillText('ANNUAL SUMMIT 2026 • TECH DE-JARGONISER', 60, 140);
+    ctx.font = 'bold 18px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('#TechDejargon', 1055, 76);
+    ctx.textAlign = 'left';
+
+    // Sub-tag under logo
+    ctx.fillStyle = '#ED4690';
+    ctx.font = 'bold 20px Inter, sans-serif';
+    ctx.fillText('ANNUAL SUMMIT 2026 • TECH DE-JARGONISER', 60, 130);
 
     // Jargon Box
     ctx.fillStyle = '#F8FAFC';
     ctx.strokeStyle = '#E2E8F0';
     ctx.lineWidth = 2;
-    roundRect(ctx, 60, 180, 1080, 140, 16);
+    roundRect(ctx, 60, 165, 1080, 145, 16);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#64748B';
     ctx.font = 'bold 18px Inter, sans-serif';
-    ctx.fillText('TECH JARGON:', 90, 220);
+    ctx.fillText('TECH JARGON:', 90, 205);
 
     ctx.fillStyle = '#0F172A';
     ctx.font = 'italic 28px Inter, sans-serif';
     const quote = document.getElementById('modal-quote-text').innerText;
-    wrapText(ctx, quote, 90, 265, 1020, 36);
+    wrapText(ctx, quote, 90, 250, 1020, 36);
 
     // De-jargonised Box
     ctx.fillStyle = '#FFF5F9';
     ctx.strokeStyle = 'rgba(237, 70, 144, 0.3)';
-    roundRect(ctx, 60, 345, 1080, 185, 16);
+    roundRect(ctx, 60, 335, 1080, 195, 16);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#ED4690';
     ctx.font = 'bold 18px Inter, sans-serif';
-    ctx.fillText('DE-JARGONISED FOR IMPACT TEAMS:', 90, 385);
+    ctx.fillText('DE-JARGONISED FOR IMPACT TEAMS:', 90, 375);
 
     ctx.fillStyle = '#1E293B';
     ctx.font = '500 24px Inter, sans-serif';
     const analogy = document.getElementById('modal-analogy-text').innerText;
-    wrapText(ctx, analogy, 90, 425, 1020, 32);
+    wrapText(ctx, analogy, 90, 415, 1020, 32);
 
-    // Footer
+    // Footer with corrected Idlistack spelling
     ctx.fillStyle = '#64748B';
-    ctx.font = '600 22px Inter, sans-serif';
-    ctx.fillText('Open-source hosting made effortless • www.idlistack.com', 60, 575);
+    ctx.font = '600 20px Inter, sans-serif';
+    ctx.fillText('De-jargonised at Idlistack Annual Summit • www.idlistack.com', 60, 575);
 
-    // Download PNG
+    // Download Ultra-High-Quality JPG
     const link = document.createElement('a');
-    link.download = `idlistack-dejargon-${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
+    link.download = `Idlistack-dejargon-${Date.now()}.jpg`;
+    link.href = canvas.toDataURL('image/jpeg', 0.96);
     link.click();
-    showToast("Downloaded branded card image!");
+    showToast("Downloaded high-quality Idlistack card (JPG)!");
   }
 
   function roundRect(ctx, x, y, width, height, radius) {
@@ -920,7 +968,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (scAccuracyVal) scAccuracyVal.textContent = `${pct}%`;
 
     let rankTitle = "💡 De-jargon Apprentice";
-    let rankDesc = "Great start! Visit the IDLIStack booth to explore sovereign open-source hosting.";
+    let rankDesc = "Great start! Visit the Idlistack booth to explore sovereign open-source hosting.";
 
     if (quizScore === total) {
       rankTitle = "🏆 Chief Open Source Hero";
@@ -1087,9 +1135,9 @@ document.addEventListener('DOMContentLoaded', () => {
       finalizeAndSyncQuizScore('share');
       const name = scorecardNameInput ? scorecardNameInput.value.trim() : "Social Impact Leader";
       const total = activeQuizQuestions.length || 5;
-      const shareText = `🏆 I scored ${quizScore}/${total} on the Open Source De-jargon Challenge at the IDLIStack Annual Summit 2026!\n\n` +
+      const shareText = `🏆 I scored ${quizScore}/${total} on the Open Source De-jargon Challenge at the Idlistack Annual Summit 2026!\n\n` +
         `Empowering non-profits with self-hosted, sovereign open-source tools. Check it out at https://idlistack.com\n\n` +
-        `#TechDejargon #IDLIStack #Tech4Good #OpenSource #AnnualSummit`;
+        `#TechDejargon #Idlistack #Tech4Good #OpenSource #AnnualSummit`;
       
       navigator.clipboard.writeText(shareText).then(() => {
         showToast("Scorecard share text copied to clipboard!");
@@ -1104,20 +1152,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function generateScorecardCanvasImage() {
+  async function generateScorecardCanvasImage() {
+    const scale = 2; // Ultra-crisp 2x Retina resolution (2400 x 1350)
+    const baseWidth = 1200;
+    const baseHeight = 675;
     const canvas = document.createElement('canvas');
-    canvas.width = 1200;
-    canvas.height = 675;
+    canvas.width = baseWidth * scale;
+    canvas.height = baseHeight * scale;
     const ctx = canvas.getContext('2d');
-    const total = activeQuizQuestions.length || 1;
+    ctx.scale(scale, scale);
+    const total = activeQuizQuestions.length || 5;
 
-    // Background gradient
-    const grad = ctx.createLinearGradient(0, 0, 1200, 675);
+    // Opaque background gradient (essential for clean JPG compression)
+    const grad = ctx.createLinearGradient(0, 0, baseWidth, baseHeight);
     grad.addColorStop(0, '#FFFFFF');
     grad.addColorStop(0.5, '#FFF2F8');
     grad.addColorStop(1, '#FDF2F8');
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 1200, 675);
+    ctx.fillRect(0, 0, baseWidth, baseHeight);
 
     // Decorative Pink Outer & Inner Borders
     ctx.strokeStyle = '#ED4690';
@@ -1128,46 +1180,68 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.lineWidth = 2;
     ctx.strokeRect(36, 36, 1128, 603);
 
-    // Header: Logo & Summit Tag
-    ctx.fillStyle = '#111827';
-    ctx.font = 'bold 38px Inter, sans-serif';
-    ctx.fillText('iDLisTACk by T4GC', 60, 95);
+    // Render Official Idlistack Logo
+    const logoImg = await loadIdlistackLogo();
+    if (logoImg) {
+      const logoH = 46;
+      const logoW = Math.round(logoH * (logoImg.naturalWidth / logoImg.naturalHeight || 2.79));
+      ctx.drawImage(logoImg, 60, 48, logoW, logoH);
+    } else {
+      ctx.fillStyle = '#111827';
+      ctx.font = 'bold 36px Inter, sans-serif';
+      ctx.fillText('Idlistack by T4GC', 60, 85);
+    }
+
+    // Top Right Pill Tag: Annual Summit 2026
+    ctx.fillStyle = '#FFF0F6';
+    ctx.strokeStyle = '#ED4690';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, 920, 50, 220, 40, 20);
+    ctx.fill();
+    ctx.stroke();
 
     ctx.fillStyle = '#ED4690';
+    ctx.font = 'bold 18px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Annual Summit 2026', 1030, 76);
+    ctx.textAlign = 'left';
+
+    // Sub-tag under Logo
+    ctx.fillStyle = '#ED4690';
     ctx.font = 'bold 20px Inter, sans-serif';
-    ctx.fillText('ANNUAL SUMMIT 2026 • OFFICIAL CERTIFICATION', 60, 135);
+    ctx.fillText('ANNUAL SUMMIT 2026 • OFFICIAL CERTIFICATION', 60, 128);
 
     // Certificate Title
     ctx.fillStyle = '#64748B';
     ctx.font = 'bold 18px Inter, sans-serif';
-    ctx.fillText('OPEN SOURCE TECH DE-JARGONISER SCORECARD', 60, 190);
+    ctx.fillText('OPEN SOURCE TECH DE-JARGONISER SCORECARD', 60, 176);
 
     // Attendee Name
     const attendeeName = (scorecardNameInput && scorecardNameInput.value.trim()) || "Social Impact Leader";
     ctx.fillStyle = '#0F172A';
     ctx.font = 'bold 44px Inter, sans-serif';
-    ctx.fillText(attendeeName, 60, 245);
+    ctx.fillText(attendeeName, 60, 235);
 
     // Score & Rank Box
     ctx.fillStyle = '#FFFFFF';
     ctx.strokeStyle = 'rgba(237, 70, 144, 0.3)';
     ctx.lineWidth = 2;
-    roundRect(ctx, 60, 280, 1080, 175, 18);
+    roundRect(ctx, 60, 270, 1080, 175, 18);
     ctx.fill();
     ctx.stroke();
 
     // Score Circle
     ctx.fillStyle = '#ED4690';
     ctx.beginPath();
-    ctx.arc(150, 367, 58, 0, Math.PI * 2);
+    ctx.arc(150, 357, 58, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 32px Inter, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`${quizScore}/${total}`, 150, 368);
+    ctx.fillText(`${quizScore}/${total}`, 150, 358);
     ctx.font = 'bold 14px Inter, sans-serif';
-    ctx.fillText('SCORE', 150, 395);
+    ctx.fillText('SCORE', 150, 385);
 
     // Rank & Details
     ctx.textAlign = 'left';
@@ -1176,31 +1250,31 @@ document.addEventListener('DOMContentLoaded', () => {
     let rankText = (quizScore === total)
       ? '🏆 Chief Open Source Hero'
       : (quizScore >= Math.ceil(total * 0.8) ? '🌟 Tech4Good Champion' : (quizScore >= Math.ceil(total * 0.5) ? '🚀 Open Source Explorer' : '💡 De-jargon Apprentice'));
-    ctx.fillText(rankText, 240, 345);
+    ctx.fillText(rankText, 240, 335);
 
     ctx.fillStyle = '#64748B';
     ctx.font = '500 20px Inter, sans-serif';
-    ctx.fillText('Championing self-hosted open-source tools, data sovereignty & affordable tech.', 240, 385);
-    ctx.fillText('Verified proficiency in open-source tools, digital sovereignty & impact tech.', 240, 420);
+    ctx.fillText('Championing self-hosted open-source tools, data sovereignty & affordable tech.', 240, 375);
+    ctx.fillText('Verified proficiency in open-source tools, digital sovereignty & impact tech.', 240, 410);
 
     // 3 Metrics badges
     const pct = Math.round((quizScore / total) * 100);
-    drawMetricBadge(ctx, 60, 480, 340, 75, `${pct}% ACCURACY`, 'Quiz Performance');
-    drawMetricBadge(ctx, 430, 480, 340, 75, 'DATA SOVEREIGNTY', 'Self-Hosted Standard');
-    drawMetricBadge(ctx, 800, 480, 340, 75, 'ZERO VENDOR LOCK-IN', 'Community Owned');
+    drawMetricBadge(ctx, 60, 470, 340, 75, `${pct}% ACCURACY`, 'Quiz Performance');
+    drawMetricBadge(ctx, 430, 470, 340, 75, 'DATA SOVEREIGNTY', 'Self-Hosted Standard');
+    drawMetricBadge(ctx, 800, 470, 340, 75, 'ZERO VENDOR LOCK-IN', 'Community Owned');
 
-    // Footer
+    // Footer with corrected Idlistack spelling
     ctx.fillStyle = '#64748B';
     ctx.font = '600 18px Inter, sans-serif';
-    ctx.fillText('Verified at IDLIStack Annual Summit • Open-source hosting made effortless • www.idlistack.com', 60, 615);
+    ctx.fillText('Verified at Idlistack Annual Summit • Open-source hosting made effortless • www.idlistack.com', 60, 615);
 
-    // Download PNG
+    // Download Ultra-High-Quality JPG
     const link = document.createElement('a');
     const safeName = attendeeName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    link.download = `idlistack-scorecard-${safeName}.png`;
-    link.href = canvas.toDataURL('image/png');
+    link.download = `Idlistack-scorecard-${safeName}.jpg`;
+    link.href = canvas.toDataURL('image/jpeg', 0.96);
     link.click();
-    showToast("Downloaded official scorecard image!");
+    showToast("Downloaded high-quality Idlistack scorecard (JPG)!");
   }
 
   function drawMetricBadge(ctx, x, y, w, h, val, lbl) {
