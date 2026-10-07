@@ -437,6 +437,97 @@ body {
   font-size: 0.98rem;
 }
 
+/* Match Reference Indicator (Referring to...) */
+.match-reference-indicator {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: linear-gradient(135deg, #FFF5F9 0%, #FFFFFF 100%);
+  border: 1px solid rgba(237, 70, 144, 0.28);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px 5px 10px;
+  box-shadow: 0 2px 8px rgba(237, 70, 144, 0.08);
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 6px;
+  animation: fadeInIndicator 0.22s ease-out;
+}
+
+@keyframes fadeInIndicator {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.match-reference-indicator .ref-icon {
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.match-reference-indicator.pulsing .ref-icon {
+  animation: pulseIcon 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseIcon {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.22); }
+}
+
+.match-reference-indicator .ref-label {
+  font-size: 0.775rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748B;
+}
+
+.match-reference-indicator .ref-term-badge {
+  background: var(--color-primary);
+  color: #FFFFFF;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 2px 6px rgba(237, 70, 144, 0.25);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.match-reference-indicator .ref-term-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(237, 70, 144, 0.4);
+}
+
+.match-reference-indicator .ref-category-badge {
+  background: rgba(237, 70, 144, 0.08);
+  color: var(--color-primary);
+  font-size: 0.725rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(237, 70, 144, 0.18);
+}
+
+.match-reference-indicator .ref-hint {
+  font-size: 0.75rem;
+  color: #94A3B8;
+}
+
+.match-reference-indicator .ref-hint em {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-style: normal;
+}
+
 /* Fuzzy Match Notice */
 .fuzzy-match-banner {
   display: inline-flex;

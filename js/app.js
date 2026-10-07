@@ -189,6 +189,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     if (direct) return { type: "exact", item: direct };
 
+    // 1.5 Prefix match for in-progress typing (e.g. "docke" for "Docker", "ghos" for "Ghost", "supa" for "Supabase")
+    if (clean.length >= 3) {
+      let prefixMatch = JARGON_DATABASE.find(item => {
+        const termLower = item.term.toLowerCase();
+        const idClean = item.id.toLowerCase().replace(/-/g, " ");
+        return termLower.startsWith(clean) || idClean.startsWith(clean);
+      });
+      if (prefixMatch) {
+        const isCompleted = prefixMatch.term.toLowerCase() === clean;
+        return { 
+          type: isCompleted ? "exact" : "prefix", 
+          item: prefixMatch, 
+          partialWord: clean 
+        };
+      }
+    }
+
     // 2. Substring match (whole word boundaries for short terms like "API", "RAG", "FMS")
     let subMatch = JARGON_DATABASE.find(item => {
       const termLower = item.term.toLowerCase();
@@ -199,15 +216,33 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return clean.includes(termLower) || clean.includes(idClean) || item.techPhrase.toLowerCase().includes(clean);
     });
-    if (subMatch) return { type: "exact", item: subMatch };
+    if (subMatch) {
+      const isExactWord = clean === subMatch.term.toLowerCase();
+      return { type: isExactWord ? "exact" : "matched", item: subMatch };
+    }
 
-    // 3. Token word match for multi-word queries like "kobo survey tool"
+    // 3. Token word match for multi-word queries or sentences where user is typing the last word
     const inputWords = clean.split(/[\s/()\-,\.]+/).filter(w => w.length >= 3 && !COMMON_STOP_WORDS.has(w));
+    if (inputWords.length > 0) {
+      const lastWord = inputWords[inputWords.length - 1];
+      let lastWordPrefix = JARGON_DATABASE.find(item => {
+        const termLower = item.term.toLowerCase();
+        return termLower.startsWith(lastWord);
+      });
+      if (lastWordPrefix) {
+        return { 
+          type: lastWordPrefix.term.toLowerCase() === lastWord ? "exact" : "prefix", 
+          item: lastWordPrefix, 
+          partialWord: lastWord 
+        };
+      }
+    }
+
     for (const item of JARGON_DATABASE) {
       const termWords = item.term.toLowerCase().split(/[\s/()\-]+/).filter(w => w.length >= 3);
       for (const iw of inputWords) {
         if (termWords.includes(iw)) {
-          return { type: "exact", item };
+          return { type: "matched", item };
         }
       }
     }
@@ -219,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const matchCount = words.filter(w => clean.includes(w)).length;
       return matchCount >= 2;
     });
-    if (reverseMatch) return { type: "exact", item: reverseMatch };
+    if (reverseMatch) return { type: "matched", item: reverseMatch };
 
     // 5. High-confidence Fuzzy Typo Match (e.g., "ghosr" -> "Ghost", "dockr" -> "Docker")
     let bestFuzzy = null;
@@ -255,6 +290,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     return { type: "none" };
+  }
+
+  // Build the visual "Referring to: [Term]" indicator badge for the output pane
+  function buildReferenceIndicator(matchResult, rawInput) {
+    if (!matchResult || !matchResult.item) return '';
+    const item = matchResult.item;
+    const isPrefix = matchResult.type === 'prefix';
+    const isFuzzy = matchResult.type === 'fuzzy';
+    
+    let hintText = '';
+    let icon = '🔍';
+    let pulseClass = '';
+
+    if (isPrefix) {
+      icon = '⚡';
+      pulseClass = 'pulsing';
+      hintText = `<span class="ref-hint">(in-progress: auto-completing <em>"${escapeHtml(matchResult.partialWord || rawInput)}"</em>)</span>`;
+    } else if (isFuzzy) {
+      icon = '💡';
+      pulseClass = 'pulsing';
+      hintText = `<span class="ref-hint">(closest match for <em>"${escapeHtml(matchResult.userWord || rawInput)}"</em>)</span>`;
+    }
+
+    return `
+      <div class="match-reference-indicator ${pulseClass}">
+        <span class="ref-icon">${icon}</span>
+        <span class="ref-label">Referring to:</span>
+        <span class="ref-term-badge" data-term="${escapeHtml(item.term)}" title="Click to fill in full term '${escapeHtml(item.term)}'">${escapeHtml(item.term)}</span>
+        <span class="ref-category-badge">${escapeHtml(item.category)}</span>
+        ${hintText}
+      </div>
+    `;
   }
 
   function runTranslation() {
@@ -297,38 +364,32 @@ document.addEventListener('DOMContentLoaded', () => {
     currentActiveId = matchedItem.id;
     highlightActiveChip(matchedItem.id);
 
-    const isFuzzy = matchResult.type === 'fuzzy';
-    const fuzzyNoticeHtml = isFuzzy ? `
-      <div class="fuzzy-match-banner">
-        <span>💡</span>
-        <span>Showing results for <strong>${escapeHtml(matchedItem.term)}</strong> (closest match to <em>"${escapeHtml(matchResult.userWord || text)}"</em>)</span>
-      </div>
-    ` : '';
+    const refIndicator = buildReferenceIndicator(matchResult, text);
 
     if (currentTargetMode === 'eli5') {
       renderTranslation({
-        fuzzyNotice: fuzzyNoticeHtml,
+        refIndicator,
         leadAnalogy: `👶 In simple words: ${matchedItem.simpleAnalogy}`,
         secondaryDesc: `Think of it like this: ${matchedItem.plainExplanation.split('. ')[0]}. That way you don't have to worry about complicated computer things!`,
         impact: `Saves time and avoids mistakes for your team.`
       });
     } else if (currentTargetMode === 'funder') {
       renderTranslation({
-        fuzzyNotice: fuzzyNoticeHtml,
+        refIndicator,
         leadAnalogy: `📊 Executive & Funder Summary: ${matchedItem.term} (${matchedItem.category}) is core digital infrastructure that mitigates operational risk and scales program impact.`,
         secondaryDesc: `Strategic Value: Eliminates manual administrative overhead, guarantees institutional reliability, and ensures compliance with donor data governance standards.`,
         impact: matchedItem.impactContext
       });
     } else if (currentTargetMode === 'tech-spec') {
       renderTranslation({
-        fuzzyNotice: fuzzyNoticeHtml,
+        refIndicator,
         leadAnalogy: `🛠️ Developer Specification: ${matchedItem.reverseTechSpec}`,
-        secondaryDesc: `Pattern: ${matchedItem.term} in ${matchedItem.category}. On IDLIStack, deploy via standardized containerized stack with automated monitoring.`,
-        impact: `Self-hosted on IDLIStack without recurring SaaS subscription costs.`
+        secondaryDesc: `Pattern: ${matchedItem.term} in ${matchedItem.category}. On Idlistack, deploy via standardized containerized stack with automated monitoring.`,
+        impact: `Self-hosted on Idlistack without recurring SaaS subscription costs.`
       });
     } else {
       renderTranslation({
-        fuzzyNotice: fuzzyNoticeHtml,
+        refIndicator,
         leadAnalogy: matchedItem.plainExplanation.trim(),
         secondaryDesc: matchedItem.simpleAnalogy ? `In simpler terms: ${matchedItem.simpleAnalogy}` : '',
         impact: matchedItem.impactContext,
@@ -359,7 +420,10 @@ document.addEventListener('DOMContentLoaded', () => {
     currentActiveId = matchedItem.id;
     highlightActiveChip(matchedItem.id);
 
+    const refIndicator = buildReferenceIndicator(matchResult, text);
+
     renderTranslation({
+      refIndicator,
       leadAnalogy: `Tech Specification: ${matchedItem.reverseTechSpec}`,
       secondaryDesc: `Corresponding Infrastructure Term: ${matchedItem.term} (${matchedItem.category}). When speaking to engineers or vendors, ask them: "${matchedItem.techPhrase}"`,
       impact: `This allows your engineering partners to implement: ${matchedItem.simpleAnalogy}`,
@@ -367,12 +431,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function renderTranslation({ fuzzyNotice = '', leadAnalogy, secondaryDesc, impact }) {
+  function renderTranslation({ refIndicator = '', leadAnalogy, secondaryDesc, impact }) {
     translationText.innerHTML = `
-      ${fuzzyNotice}
+      ${refIndicator}
       <p class="lead-analogy">${escapeHtml(leadAnalogy)}</p>
       ${secondaryDesc ? `<p class="secondary-desc">${escapeHtml(secondaryDesc)}</p>` : ''}
     `;
+
+    // Clicking the reference term badge auto-fills the complete term into the input
+    const badge = translationText.querySelector('.ref-term-badge');
+    if (badge) {
+      badge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const term = badge.dataset.term;
+        if (term && sourceInput) {
+          sourceInput.value = term;
+          updateInputState();
+          runTranslation();
+          showToast(`Autocompleted to "${term}"!`);
+        }
+      });
+    }
 
     if (impact) {
       impactCard.classList.remove('hidden');
