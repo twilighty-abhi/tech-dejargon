@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentQuizIndex = 0;
   let quizScore = 0;
   const QUIZ_ROUND_SIZE = 5; // Always exactly 5 questions per quiz session
-  let currentCategoryFilter = "all";
+  let currentCategoryFilter = "Open Source Apps";
   let currentSearchQuery = "";
 
   // --- Initialize Widely Used Phrases Chips with Filtering & Search ---
