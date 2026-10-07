@@ -921,33 +921,41 @@ document.addEventListener('DOMContentLoaded', () => {
     if (scRankTitle) scRankTitle.textContent = rankTitle;
     if (scRankDesc) scRankDesc.textContent = rankDesc;
 
-    if (scorecardNameInput && scDisplayName) {
-      scDisplayName.textContent = scorecardNameInput.value.trim() || "Social Impact Leader";
-      scorecardNameInput.oninput = (e) => {
-        scDisplayName.textContent = e.target.value.trim() || "Social Impact Leader";
-      };
-    }
-
-    // Google Sheet Leaderboard Auto-Sync
-    updateSyncStatusUI('default');
+    let debounceTimer = null;
     const sendScorePayload = () => {
+      const attendeeName = (scorecardNameInput && scorecardNameInput.value.trim()) || "Social Impact Leader";
       syncScoreToGoogleSheet({
         timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
-        name: (scorecardNameInput && scorecardNameInput.value.trim()) || "Social Impact Leader",
-        contact: (scorecardContactInput && scorecardContactInput.value.trim()) || "",
-        score: quizScore,
+        name: attendeeName,
+        contact: "-",
+        score: `${quizScore}/${total}`,
         total: total,
         accuracy: pct,
         rank: rankTitle,
-        device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop/Kiosk"
+        level: "Open Source Tech De-jargoniser",
+        device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop/Kiosk",
+        userAgent: navigator.userAgent || ""
       });
     };
 
-    sendScorePayload();
-
     if (scorecardNameInput) {
+      if (scDisplayName) {
+        scDisplayName.textContent = scorecardNameInput.value.trim() || "Social Impact Leader";
+      }
+      scorecardNameInput.oninput = (e) => {
+        if (scDisplayName) {
+          scDisplayName.textContent = e.target.value.trim() || "Social Impact Leader";
+        }
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          sendScorePayload();
+        }, 800);
+      };
       scorecardNameInput.onchange = sendScorePayload;
     }
+
+    // Auto-sync immediately when scorecard is generated
+    sendScorePayload();
 
     showToast("🎉 Scorecard generated! Download or share your certificate.");
   }
@@ -975,14 +983,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!url) return;
 
     try {
-      // Background request without user notification or visual disruption
+      // Cross-origin request to Google Apps Script without CORS blockage
       await fetch(url, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-cache',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
-      console.log('Leaderboard backend: score successfully synced.');
+      console.log('Leaderboard backend: score successfully synced.', payload);
     } catch (err) {
       console.warn('Leaderboard backend: network failure, saving locally for later sync', err);
       queueScoreOffline(payload);
@@ -1009,7 +1018,8 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetch(url, {
           method: 'POST',
           mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-cache',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(item)
         });
       }
