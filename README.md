@@ -34,11 +34,11 @@ The **Tech De-jargoniser** bridges this gap through a clean, Google Translate-in
    - Generates an instant high-resolution PNG image card with the IDLIStack Summit branding, ready to download or share on LinkedIn/Twitter/WhatsApp.
 
 5. **Booth Engagement Activities**:
-   - 🎮 **De-jargon Quiz Challenge**: A 4-question interactive game for summit visitors to test their jargon IQ and win summit swag/stickers.
+   - 🎮 **De-jargon Quiz Challenge**: A fast-paced, randomized **5-question interactive game** served automatically behind the scenes (from a curated bank of open-source and tech questions, with shuffled answers). Attendees get an instant personalized downloadable Scorecard to show at the booth for stickers/swag.
    - 🎲 **Surprise Me / Jargon Bingo**: Randomly pulls hilarious real-world buzzwords commonly heard in NGO tech meetings.
    - 🎙️ **Voice Input (Speech-to-Text)**: Attendees can tap the microphone and speak jargon directly into the booth mic.
    - 🔊 **Read Aloud (Text-to-Speech)**: Speaks the translation aloud with smooth browser synthesis.
-   - 📱 **Mobile QR Code**: Attendees can scan a QR code on the booth screen to run the tool on their own phones.
+   - 📱 **Mobile QR Code**: Attendees can scan a QR code on the booth screen to run the tool on their own phones (dynamically shows the exact hosting URL).
    - 🖥️ **Fullscreen Kiosk Mode**: One-click fullscreen display for iPad stands or large TV displays.
 
 ---
@@ -67,12 +67,13 @@ Simply open `index.html` directly in Chrome, Safari, Firefox, or Edge.
 
 ```
 tech-dejargon/
-├── index.html            # Main semantic markup with summit modals & tools
+├── index.html            # Clean attendee-facing UI with summit modals & tools
 ├── css/
 │   └── style.css         # IDLIStack branding, pink accents, responsive layout
 ├── js/
 │   ├── dictionary.js     # 60+ curated jargon terms, analogies, & impact notes
-│   └── app.js            # Translation engine, TTS/STT, canvas card export, quiz
+│   ├── app.js            # Translation engine, 5-question quiz, silent backend sheet logger
+│   └── qrcode.min.js     # Standalone QR generator
 ├── assets/
 │   ├── logo-black.png    # Official IDLIStack by T4GC logo
 │   └── icon.svg          # Brand icon & favicon
@@ -101,29 +102,60 @@ tech-dejargon/
    - Ask visitors: *"What tech word did a developer or vendor say that confused you?"*
    - Let them speak into the mic or type it in.
    - Have them click **"Get Your Card"** to download their custom de-jargonised card.
-   - Encourage them to try the **Open Source Jargon Quiz** to win IDLIStack stickers and download their official Scorecard!
+   - Encourage them to try the **5-question Open Source Quiz** to win IDLIStack stickers and download their official Scorecard!
 
 ---
 
-## 📊 Google Sheet Automatic Leaderboard Backend
+## 📊 Silent Google Sheet Leaderboard Backend
 
-You can connect any free Google Sheet to automatically record attendee names, contact info, quiz scores, accuracy percentages, and certification ranks in real time!
+The application records attendee names, quiz scores, accuracy percentages, and certification ranks **silently in the backend**. 
 
-### 60-Second Setup:
+> [!NOTE]
+> **100% Attendee-Friendly**: There are **zero** developer dialogs, setup modals, or sync indicators shown on the frontend. Attendees only see their clean scorecard, while their submission is logged automatically behind the scenes.
+
+### 60-Second Organizer Setup:
 
 1. Create a new Google Sheet (e.g. named `IDLIStack Summit 2026 Quiz Leaderboard`).
 2. In Google Sheets, click **Extensions > Apps Script**.
-3. In the IDLIStack De-jargoniser, click **Google Sheet Setup** and click **"Copy Apps Script Code"**.
-4. Paste the code into the Apps Script editor and click **Save** (💾).
-5. Click **Deploy > New deployment**:
+3. Replace any code with this snippet:
+```javascript
+function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(["Timestamp", "Attendee Name", "Score", "Accuracy", "Rank", "Level", "Device"]);
+      sheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#ED4690").setFontColor("#FFFFFF");
+    }
+    var data = JSON.parse(e.postData.contents);
+    sheet.appendRow([
+      data.timestamp || new Date().toISOString(),
+      data.name || "Anonymous",
+      data.score || "0/5",
+      (data.accuracy || 0) + "%",
+      data.rank || "Explorer",
+      data.level || "Standard",
+      data.userAgent || ""
+    ]);
+    return ContentService.createTextOutput(JSON.stringify({status: "ok"})).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+```
+4. Click **Deploy > New deployment**:
    - **Type**: Web app
    - **Execute as**: Me
-   - **Who has access**: **Anyone** *(Crucial for frontend logging without login)*
-6. Click **Deploy**, authorize access, and copy the **Web App URL** (`https://script.google.com/macros/s/.../exec`).
-7. Paste this URL into the De-jargoniser's **Google Sheet Setup** dialog and click **Save & Test Connection**.
-
-A test row will immediately populate your Google Sheet, and all subsequent quiz participants' names and scores will sync automatically!
+   - **Who has access**: **Anyone** *(Crucial for silent web logging without requiring attendee logins)*
+5. Copy the generated **Web App URL** (`https://script.google.com/macros/s/.../exec`).
+6. Set the backend URL in either of two ways:
+   - **Option A (Code - Recommended)**: Open [js/app.js](file:///Users/abhi/Documents/Projects/tech-dejargon/js/app.js) and paste your URL on line 12:
+     ```javascript
+     const GOOGLE_SHEET_BACKEND_URL = "https://script.google.com/macros/s/.../exec";
+     ```
+   - **Option B (Booth URL Query Param)**: Open the booth browser with `?sheet=<YOUR_URL>`, e.g.:
+     `http://localhost:4321/?sheet=https://script.google.com/macros/s/.../exec`
+     The URL parameter will be silently stored in the browser's local storage and used for all subsequent attendee submissions.
 
 ### Offline Resilient:
-If the summit Wi-Fi drops at the venue, submissions are automatically queued in the browser's local storage and flushed to the Google Sheet as soon as connectivity resumes.
+If venue Wi-Fi momentarily drops during the summit, attendee submissions are automatically queued in the browser's local storage and flushed silently to Google Sheets as soon as internet connectivity resumes.
 

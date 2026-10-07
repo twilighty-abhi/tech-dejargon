@@ -3,6 +3,14 @@
  * Core Application Engine - Annual Summit 2026 Edition
  */
 
+// ========================================================================
+// 📊 BACKEND CONFIGURATION: GOOGLE SHEET LEADERBOARD
+// ========================================================================
+// Paste your Google Apps Script Web App URL here to silently collect scores:
+// e.g. "https://script.google.com/macros/s/AKfycb.../exec"
+// This runs 100% in the backend with ZERO popups, dialogs, or sync notices shown to users!
+const GOOGLE_SHEET_BACKEND_URL = "";
+
 document.addEventListener('DOMContentLoaded', () => {
   // --- DOM Elements ---
   const sourceInput = document.getElementById('source-input');
@@ -750,7 +758,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const quizProgress = document.getElementById('quiz-progress');
   const quizProgressFill = document.getElementById('quiz-progress-fill');
   const scorecardNameInput = document.getElementById('scorecard-name-input');
-  const scorecardContactInput = document.getElementById('scorecard-contact-input');
   const scDisplayName = document.getElementById('sc-display-name');
   const scScoreNum = document.getElementById('sc-score-num');
   const scRankTitle = document.getElementById('sc-rank-title');
@@ -759,16 +766,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnRetakeQuiz = document.getElementById('btn-retake-quiz');
   const btnCopyScoreShare = document.getElementById('btn-copy-score-share');
   const btnDownloadScorecard = document.getElementById('btn-download-scorecard');
-
-  // Google Sheet Backend Integration Elements
-  const sheetModal = document.getElementById('sheet-modal');
-  const sheetModalClose = document.getElementById('sheet-modal-close');
-  const btnSheetSettings = document.getElementById('btn-sheet-settings');
-  const googleSheetUrlInput = document.getElementById('google-sheet-url-input');
-  const btnSaveSheetUrl = document.getElementById('btn-save-sheet-url');
-  const btnCopyAppsScript = document.getElementById('btn-copy-apps-script');
-  const syncDot = document.getElementById('sync-dot');
-  const syncStatusText = document.getElementById('sync-status-text');
 
   // Fisher-Yates array shuffling algorithm
   function shuffleArray(arr) {
@@ -952,136 +949,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if (scorecardNameInput) {
       scorecardNameInput.onchange = sendScorePayload;
     }
-    if (scorecardContactInput) {
-      scorecardContactInput.onchange = sendScorePayload;
-    }
 
     showToast("🎉 Scorecard generated! Download or share your certificate.");
   }
 
-  // --- Google Sheet Backend Integration & Apps Script Engine ---
-  const GOOGLE_APPS_SCRIPT_TEMPLATE = `// ==========================================
-// IDLIStack Summit Quiz Leaderboard Apps Script
-// ==========================================
-// Setup in 60 seconds:
-// 1. Open Google Sheets -> Extensions -> Apps Script
-// 2. Paste this entire code and save
-// 3. Click Deploy -> New deployment -> Select type: Web app
-// 4. Set "Execute as": "Me"
-// 5. Set "Who has access": "Anyone" (CRITICAL)
-// 6. Click Deploy, Authorize access, and copy the Web App URL!
-
-function doPost(e) {
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    
-    // Auto-create header row if sheet is empty
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow([
-        "Timestamp",
-        "Attendee / Org Name",
-        "Contact (Email/Phone)",
-        "Score",
-        "Total Questions",
-        "Accuracy",
-        "Rank Title",
-        "Device"
-      ]);
-      sheet.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#FFF2F8");
-      sheet.setFrozenRows(1);
-    }
-
-    var data = JSON.parse(e.postData.contents);
-    sheet.appendRow([
-      data.timestamp || new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
-      data.name || "Anonymous",
-      data.contact || "-",
-      data.score || 0,
-      data.total || 0,
-      (data.accuracy || 0) + "%",
-      data.rank || "Participant",
-      data.device || "Kiosk"
-    ]);
-
-    return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({ status: "online", app: "IDLIStack Leaderboard" }))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-`;
-
+  // --- Backend Google Sheet Leaderboard Sync (Silent Background Engine) ---
   const STORAGE_KEY_SHEET_URL = 'idlistack_google_sheet_url';
   const STORAGE_KEY_OFFLINE_SCORES = 'idlistack_offline_scores';
 
   function getGoogleSheetUrl() {
-    return localStorage.getItem(STORAGE_KEY_SHEET_URL) || '';
-  }
-
-  function setGoogleSheetUrl(url) {
-    if (url && url.trim()) {
-      localStorage.setItem(STORAGE_KEY_SHEET_URL, url.trim());
-    } else {
-      localStorage.removeItem(STORAGE_KEY_SHEET_URL);
-    }
-    updateSyncStatusUI();
-  }
-
-  function updateSyncStatusUI(state = 'default', message = '') {
-    const url = getGoogleSheetUrl();
-    if (!syncDot || !syncStatusText) return;
-
-    syncDot.className = 'sync-dot';
-
-    if (state === 'syncing') {
-      syncDot.classList.add('syncing');
-      syncStatusText.textContent = message || 'Syncing to Google Sheet...';
-    } else if (state === 'synced') {
-      syncDot.classList.add('synced');
-      syncStatusText.textContent = message || '✓ Saved to Google Sheet Leaderboard';
-    } else if (state === 'error') {
-      syncDot.classList.add('error');
-      syncStatusText.textContent = message || 'Saved locally (offline mode)';
-    } else {
-      if (url) {
-        syncDot.classList.add('synced');
-        syncStatusText.textContent = 'Google Sheet: Connected & Ready';
-      } else {
-        syncStatusText.textContent = 'Google Sheet: Local Mode (Not Connected)';
+    // Check URL query parameter (e.g. ?sheet=https://script.google.com/...)
+    try {
+      const urlParam = new URLSearchParams(window.location.search).get('sheet');
+      if (urlParam) {
+        localStorage.setItem(STORAGE_KEY_SHEET_URL, urlParam.trim());
       }
-    }
+    } catch (_) {}
+
+    return (GOOGLE_SHEET_BACKEND_URL && GOOGLE_SHEET_BACKEND_URL.trim()) ||
+           localStorage.getItem(STORAGE_KEY_SHEET_URL) || '';
   }
 
+  // Silently post scorecard data to Google Sheet backend with ZERO frontend notices
   async function syncScoreToGoogleSheet(payload) {
     const url = getGoogleSheetUrl();
-    if (!url) {
-      updateSyncStatusUI('default');
-      return;
-    }
+    if (!url) return;
 
     try {
-      updateSyncStatusUI('syncing', 'Syncing to Google Sheet...');
-      
-      // Google Apps Script requires mode: 'no-cors' from browser to avoid CORS redirect rejection
+      // Background request without user notification or visual disruption
       await fetch(url, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-
-      updateSyncStatusUI('synced', '✓ Saved to Google Sheet Leaderboard!');
-      showToast('📊 Score saved to Google Sheet leaderboard!');
+      console.log('Leaderboard backend: score successfully synced.');
     } catch (err) {
-      console.warn('Google Sheet sync error (saving offline):', err);
+      console.warn('Leaderboard backend: network failure, saving locally for later sync', err);
       queueScoreOffline(payload);
-      updateSyncStatusUI('error', 'Saved locally (offline mode)');
     }
   }
 
@@ -1110,65 +1015,13 @@ function doGet(e) {
         });
       }
       localStorage.removeItem(STORAGE_KEY_OFFLINE_SCORES);
-      showToast(`🔄 Synced ${queued.length} offline quiz scores to Google Sheet!`);
+      console.log(`Leaderboard backend: flushed ${queued.length} offline scores.`);
     } catch (e) {
       console.warn('Could not flush offline queue', e);
     }
   }
 
   window.addEventListener('online', flushOfflineScores);
-
-  // Wire up Google Sheet Setup Modal Listeners
-  if (btnSheetSettings) {
-    btnSheetSettings.addEventListener('click', () => {
-      if (googleSheetUrlInput) {
-        googleSheetUrlInput.value = getGoogleSheetUrl();
-      }
-      if (sheetModal) sheetModal.classList.remove('hidden');
-    });
-  }
-
-  if (sheetModalClose) {
-    sheetModalClose.addEventListener('click', () => {
-      if (sheetModal) sheetModal.classList.add('hidden');
-    });
-  }
-
-  if (btnCopyAppsScript) {
-    btnCopyAppsScript.addEventListener('click', () => {
-      navigator.clipboard.writeText(GOOGLE_APPS_SCRIPT_TEMPLATE).then(() => {
-        showToast("📋 Apps Script code copied to clipboard!");
-      });
-    });
-  }
-
-  if (btnSaveSheetUrl) {
-    btnSaveSheetUrl.addEventListener('click', () => {
-      const url = (googleSheetUrlInput ? googleSheetUrlInput.value.trim() : '');
-      if (url && !url.startsWith('https://script.google.com/macros/s/')) {
-        showToast("⚠️ URL should start with https://script.google.com/macros/s/...");
-        return;
-      }
-      setGoogleSheetUrl(url);
-      if (url) {
-        // Send a test ping row to verify connection
-        syncScoreToGoogleSheet({
-          timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
-          name: "Kiosk Test Connection",
-          contact: "admin@idlistack.com",
-          score: 5,
-          total: 5,
-          accuracy: 100,
-          rank: "🏆 System Setup Test",
-          device: "Admin Setup"
-        });
-        showToast("✅ Google Sheet connected! Test row sent.");
-      } else {
-        showToast("Switched back to local mode (no Google Sheet).");
-      }
-      if (sheetModal) sheetModal.classList.add('hidden');
-    });
-  }
 
   if (btnRetakeQuiz) {
     btnRetakeQuiz.addEventListener('click', () => {
