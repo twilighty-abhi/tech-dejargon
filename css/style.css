@@ -1663,10 +1663,12 @@ body.modal-open {
   text-decoration: underline;
 }
 
-/* Toast Message */
+/* Toast Message - Top Notification (never blocks bottom action buttons) */
 .toast {
   position: fixed;
-  bottom: 24px;
+  top: 18px;
+  top: max(18px, env(safe-area-inset-top));
+  bottom: auto;
   left: 50%;
   transform: translateX(-50%);
   background: #111827;
@@ -1675,9 +1677,10 @@ body.modal-open {
   border-radius: var(--radius-pill);
   font-size: 0.875rem;
   font-weight: 500;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  z-index: 300;
-  animation: slideUpToast 0.25s ease-out;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
+  pointer-events: none; /* Never blocks touches or clicks on underlying buttons */
+  animation: slideDownToast 0.25s ease-out;
 }
 
 .toast.hidden {
@@ -1704,6 +1707,18 @@ body.modal-open {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slideDownToast {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 }
 
@@ -1791,6 +1806,55 @@ body.kiosk-mode .translation-body {
 
 /* Mobile Responsiveness (Phones & Small Viewports) */
 @media (max-width: 640px) {
+  /* Match Reference Indicator Mobile Optimization (Referring to: API • Connectivity & Data) */
+  .match-reference-indicator {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 12px;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    line-height: 1.35;
+  }
+
+  .match-reference-indicator .ref-icon {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .match-reference-indicator .ref-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+
+  .match-reference-indicator .ref-term-badge {
+    font-size: 0.775rem;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .match-reference-indicator .ref-category-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+  }
+
+  .match-reference-indicator .ref-hint {
+    font-size: 0.7rem;
+    width: 100%;
+    margin-top: 1px;
+  }
   /* Topbar compact */
   .summit-topbar {
     padding: 8px 12px;
@@ -1903,20 +1967,35 @@ body.kiosk-mode .translation-body {
   /* Feedback box */
   .quiz-feedback {
     margin-top: 10px;
+    margin-bottom: 6px;
     padding: 10px 12px;
-    font-size: 0.825rem;
-    line-height: 1.4;
-    border-radius: 10px;
+    font-size: 0.835rem;
+    line-height: 1.42;
+    border-radius: 11px;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    color: #1E40AF;
+    animation: fadeIn 0.2s ease-out;
   }
 
-  /* Quiz Footer: full-width next button */
+  /* Quiz Footer: full-width next button with sticky anchoring */
   .quiz-footer {
-    margin-top: 12px;
+    position: sticky;
+    bottom: -16px;
+    margin-top: 10px;
+    margin-bottom: -4px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, #FFFFFF 35%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10;
     width: 100%;
   }
 
   .quiz-footer #btn-next-quiz {
     width: 100%;
+    min-height: 48px;
     justify-content: center;
     padding: 12px 16px;
     font-size: 0.95rem;
