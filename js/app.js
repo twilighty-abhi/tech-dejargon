@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentActiveId = "api";
   let isRecording = false;
   let recognition = null;
+  let isCurrentTermRecognized = true;
   let activeQuizQuestions = [];
   let currentQuizIndex = 0;
   let quizScore = 0;
@@ -133,9 +134,127 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- Translation Core Engine ---
+  const COMMON_STOP_WORDS = new Set([
+    "the", "and", "for", "with", "that", "this", "from", "have", "what", "which",
+    "some", "just", "about", "your", "their", "will", "would", "there", "then",
+    "more", "when", "into", "also", "very", "much", "such", "than", "other",
+    "how", "can", "does", "where", "should", "could"
+  ]);
+
+  function levenshteinDistance(a, b) {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+    return matrix[b.length][a.length];
+  }
+
+  function highlightActiveChip(id) {
+    document.querySelectorAll('.phrase-chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.id === id);
+    });
+  }
+
+  // Intelligent matching: exact, substring, tokens, and typo-tolerant fuzzy matching
+  function findBestJargonMatch(input) {
+    const clean = input.trim().toLowerCase();
+    if (!clean) return { type: "empty" };
+
+    // 1. Direct Term or ID match
+    let direct = JARGON_DATABASE.find(item => {
+      const termLower = item.term.toLowerCase();
+      const idClean = item.id.replace(/-/g, " ");
+      return clean === termLower || clean === idClean || clean === item.id;
+    });
+    if (direct) return { type: "exact", item: direct };
+
+    // 2. Substring match (whole word boundaries for short terms like "API", "RAG", "FMS")
+    let subMatch = JARGON_DATABASE.find(item => {
+      const termLower = item.term.toLowerCase();
+      const idClean = item.id.replace(/-/g, " ");
+      if (termLower.length <= 4) {
+        const regex = new RegExp("\\b" + termLower + "\\b", "i");
+        return regex.test(clean) || clean === idClean;
+      }
+      return clean.includes(termLower) || clean.includes(idClean) || item.techPhrase.toLowerCase().includes(clean);
+    });
+    if (subMatch) return { type: "exact", item: subMatch };
+
+    // 3. Token word match for multi-word queries like "kobo survey tool"
+    const inputWords = clean.split(/[\s/()\-,\.]+/).filter(w => w.length >= 3 && !COMMON_STOP_WORDS.has(w));
+    for (const item of JARGON_DATABASE) {
+      const termWords = item.term.toLowerCase().split(/[\s/()\-]+/).filter(w => w.length >= 3);
+      for (const iw of inputWords) {
+        if (termWords.includes(iw)) {
+          return { type: "exact", item };
+        }
+      }
+    }
+
+    // 4. Reverse phrase match
+    let reverseMatch = JARGON_DATABASE.find(item => {
+      if (!item.reversePhrase) return false;
+      const words = item.reversePhrase.toLowerCase().split(/\s+/).filter(w => w.length > 3 && !COMMON_STOP_WORDS.has(w));
+      const matchCount = words.filter(w => clean.includes(w)).length;
+      return matchCount >= 2;
+    });
+    if (reverseMatch) return { type: "exact", item: reverseMatch };
+
+    // 5. High-confidence Fuzzy Typo Match (e.g., "ghosr" -> "Ghost", "dockr" -> "Docker")
+    let bestFuzzy = null;
+    let highestSim = 0;
+    const candidateWords = inputWords.length > 0 ? inputWords : [clean];
+
+    for (const item of JARGON_DATABASE) {
+      const targets = [
+        item.id.toLowerCase().replace(/-/g, ""),
+        ...item.term.toLowerCase().split(/[\s/()\-]+/).filter(w => w.length >= 3)
+      ];
+
+      for (const uWord of candidateWords) {
+        if (uWord.length < 3 || COMMON_STOP_WORDS.has(uWord)) continue;
+
+        for (const target of targets) {
+          if (Math.abs(uWord.length - target.length) > 2) continue;
+          const dist = levenshteinDistance(uWord, target);
+          const maxLen = Math.max(uWord.length, target.length);
+          const sim = 1 - (dist / maxLen);
+
+          // Require >= 74% similarity and <= 2 edits
+          if (dist <= 2 && sim >= 0.74 && sim > highestSim) {
+            highestSim = sim;
+            bestFuzzy = { item, userWord: uWord, target, dist, sim };
+          }
+        }
+      }
+    }
+
+    if (bestFuzzy) {
+      return { type: "fuzzy", item: bestFuzzy.item, userWord: bestFuzzy.userWord, target: bestFuzzy.target };
+    }
+
+    return { type: "none" };
+  }
+
   function runTranslation() {
     const text = sourceInput.value.trim();
     if (!text) {
+      isCurrentTermRecognized = false;
+      highlightActiveChip(null);
       renderEmptyState();
       return;
     }
@@ -150,95 +269,100 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function translateTechToPlain(text) {
-    const lower = text.toLowerCase();
-    
-    // 1. Direct term, ID, or tech phrase match
-    let matchedItem = JARGON_DATABASE.find(item => {
-      const termLower = item.term.toLowerCase();
-      const idMatch = lower.includes(item.id.replace(/-/g, ' '));
-      const termMatch = lower.includes(termLower);
-      const phraseMatch = item.techPhrase.toLowerCase().includes(lower);
-      return termMatch || idMatch || phraseMatch;
-    });
+    const matchResult = findBestJargonMatch(text);
 
-    // 2. Tokenized word match (handles "kobo", "odk", "ghost", "rag", "fms", "posthog")
-    if (!matchedItem) {
-      matchedItem = JARGON_DATABASE.find(item => {
-        const words = item.term.toLowerCase().split(/[\s/()\-]+/);
-        return words.some(w => w.length >= 3 && lower.includes(w));
-      });
+    if (matchResult.type === 'empty') {
+      isCurrentTermRecognized = false;
+      highlightActiveChip(null);
+      renderEmptyState();
+      return;
     }
 
-    // 3. Question / reverse phrase match
-    if (!matchedItem) {
-      matchedItem = JARGON_DATABASE.find(item => {
-        if (!item.reversePhrase) return false;
-        const words = item.reversePhrase.toLowerCase().split(/\s+/);
-        const matchCount = words.filter(w => w.length > 3 && lower.includes(w)).length;
-        return matchCount >= 2;
-      });
+    if (matchResult.type === 'none') {
+      isCurrentTermRecognized = false;
+      highlightActiveChip(null);
+      renderNotFoundState(text);
+      return;
     }
 
-    if (matchedItem) {
-      if (currentTargetMode === 'eli5') {
-        renderTranslation({
-          leadAnalogy: `👶 In simple words: ${matchedItem.simpleAnalogy}`,
-          secondaryDesc: `Think of it like this: ${matchedItem.plainExplanation.split('. ')[0]}. That way you don't have to worry about complicated computer things!`,
-          impact: `Saves time and avoids mistakes for your team.`
-        });
-      } else if (currentTargetMode === 'funder') {
-        renderTranslation({
-          leadAnalogy: `📊 Executive & Funder Summary: ${matchedItem.term} (${matchedItem.category}) is core digital infrastructure that mitigates operational risk and scales program impact.`,
-          secondaryDesc: `Strategic Value: Eliminates manual administrative overhead, guarantees institutional reliability, and ensures compliance with donor data governance standards.`,
-          impact: matchedItem.impactContext
-        });
-      } else if (currentTargetMode === 'tech-spec') {
-        renderTranslation({
-          leadAnalogy: `🛠️ Developer Specification: ${matchedItem.reverseTechSpec}`,
-          secondaryDesc: `Pattern: ${matchedItem.term} in ${matchedItem.category}. On IDLIStack, deploy via standardized containerized stack with automated monitoring.`,
-          impact: `Self-hosted on IDLIStack without recurring SaaS subscription costs.`
-        });
-      } else {
-        renderTranslation({
-          leadAnalogy: matchedItem.plainExplanation.trim(),
-          secondaryDesc: matchedItem.simpleAnalogy ? `In simpler terms: ${matchedItem.simpleAnalogy}` : '',
-          impact: matchedItem.impactContext,
-          analogySummary: matchedItem.simpleAnalogy
-        });
-      }
+    isCurrentTermRecognized = true;
+    const matchedItem = matchResult.item;
+    currentActiveId = matchedItem.id;
+    highlightActiveChip(matchedItem.id);
+
+    const isFuzzy = matchResult.type === 'fuzzy';
+    const fuzzyNoticeHtml = isFuzzy ? `
+      <div class="fuzzy-match-banner">
+        <span>💡</span>
+        <span>Showing results for <strong>${escapeHtml(matchedItem.term)}</strong> (closest match to <em>"${escapeHtml(matchResult.userWord || text)}"</em>)</span>
+      </div>
+    ` : '';
+
+    if (currentTargetMode === 'eli5') {
+      renderTranslation({
+        fuzzyNotice: fuzzyNoticeHtml,
+        leadAnalogy: `👶 In simple words: ${matchedItem.simpleAnalogy}`,
+        secondaryDesc: `Think of it like this: ${matchedItem.plainExplanation.split('. ')[0]}. That way you don't have to worry about complicated computer things!`,
+        impact: `Saves time and avoids mistakes for your team.`
+      });
+    } else if (currentTargetMode === 'funder') {
+      renderTranslation({
+        fuzzyNotice: fuzzyNoticeHtml,
+        leadAnalogy: `📊 Executive & Funder Summary: ${matchedItem.term} (${matchedItem.category}) is core digital infrastructure that mitigates operational risk and scales program impact.`,
+        secondaryDesc: `Strategic Value: Eliminates manual administrative overhead, guarantees institutional reliability, and ensures compliance with donor data governance standards.`,
+        impact: matchedItem.impactContext
+      });
+    } else if (currentTargetMode === 'tech-spec') {
+      renderTranslation({
+        fuzzyNotice: fuzzyNoticeHtml,
+        leadAnalogy: `🛠️ Developer Specification: ${matchedItem.reverseTechSpec}`,
+        secondaryDesc: `Pattern: ${matchedItem.term} in ${matchedItem.category}. On IDLIStack, deploy via standardized containerized stack with automated monitoring.`,
+        impact: `Self-hosted on IDLIStack without recurring SaaS subscription costs.`
+      });
     } else {
-      // Generic intelligent deconstruction for custom input
-      renderCustomTranslation(text);
+      renderTranslation({
+        fuzzyNotice: fuzzyNoticeHtml,
+        leadAnalogy: matchedItem.plainExplanation.trim(),
+        secondaryDesc: matchedItem.simpleAnalogy ? `In simpler terms: ${matchedItem.simpleAnalogy}` : '',
+        impact: matchedItem.impactContext,
+        analogySummary: matchedItem.simpleAnalogy
+      });
     }
   }
 
   function translatePlainToTech(text) {
-    const lower = text.toLowerCase();
-    let matchedItem = JARGON_DATABASE.find(item => {
-      return lower.includes(item.term.toLowerCase()) || 
-             (item.reversePhrase && lower.includes(item.reversePhrase.toLowerCase())) ||
-             (item.impactContext && lower.includes(item.category.toLowerCase()));
-    });
+    const matchResult = findBestJargonMatch(text);
 
-    if (matchedItem) {
-      renderTranslation({
-        leadAnalogy: `Tech Specification: ${matchedItem.reverseTechSpec}`,
-        secondaryDesc: `Corresponding Infrastructure Term: ${matchedItem.term} (${matchedItem.category}). When speaking to engineers or vendors, ask them: "${matchedItem.techPhrase}"`,
-        impact: `This allows your engineering partners to implement: ${matchedItem.simpleAnalogy}`,
-        analogySummary: `Recommended standard: ${matchedItem.term}`
-      });
-    } else {
-      renderTranslation({
-        leadAnalogy: `Standard Engineering Requirement: Define modular service interface with secure RESTful endpoints and automated logging.`,
-        secondaryDesc: `For non-profit implementations on IDLIStack, map this to an open-source tool like Ghost, Listmonk, or Whatomate rather than custom code.`,
-        impact: `Reduces ongoing server maintenance and leverages community-tested open-source workflows.`,
-        analogySummary: `Modular Open Source Architecture`
-      });
+    if (matchResult.type === 'empty') {
+      isCurrentTermRecognized = false;
+      highlightActiveChip(null);
+      renderEmptyState();
+      return;
     }
+
+    if (matchResult.type === 'none') {
+      isCurrentTermRecognized = false;
+      highlightActiveChip(null);
+      renderNotFoundReverseState(text);
+      return;
+    }
+
+    isCurrentTermRecognized = true;
+    const matchedItem = matchResult.item;
+    currentActiveId = matchedItem.id;
+    highlightActiveChip(matchedItem.id);
+
+    renderTranslation({
+      leadAnalogy: `Tech Specification: ${matchedItem.reverseTechSpec}`,
+      secondaryDesc: `Corresponding Infrastructure Term: ${matchedItem.term} (${matchedItem.category}). When speaking to engineers or vendors, ask them: "${matchedItem.techPhrase}"`,
+      impact: `This allows your engineering partners to implement: ${matchedItem.simpleAnalogy}`,
+      analogySummary: `Recommended standard: ${matchedItem.term}`
+    });
   }
 
-  function renderTranslation({ leadAnalogy, secondaryDesc, impact }) {
+  function renderTranslation({ fuzzyNotice = '', leadAnalogy, secondaryDesc, impact }) {
     translationText.innerHTML = `
+      ${fuzzyNotice}
       <p class="lead-analogy">${escapeHtml(leadAnalogy)}</p>
       ${secondaryDesc ? `<p class="secondary-desc">${escapeHtml(secondaryDesc)}</p>` : ''}
     `;
@@ -251,13 +375,80 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function renderCustomTranslation(text) {
+  function renderNotFoundState(rawText) {
+    const safeText = escapeHtml(rawText);
+    const sampleTerms = ['Ghost', 'API', 'Listmonk', 'Docker', 'KoboToolbox', 'Webhook'];
+    const sampleChipsHtml = sampleTerms.map(term => {
+      const item = JARGON_DATABASE.find(x => x.term.toLowerCase().startsWith(term.toLowerCase()));
+      const id = item ? item.id : 'api';
+      return `<button type="button" class="notfound-suggestion-chip" data-id="${id}">${term}</button>`;
+    }).join(' ');
+
     translationText.innerHTML = `
-      <p class="lead-analogy">Think of this like an automated helper coordinating behind the scenes so your team doesn't have to perform manual data entry or manage complex servers.</p>
-      <p class="secondary-desc">In the social sector, complex technical jargon usually refers to either: (1) connecting two apps together, (2) keeping donor data secure, or (3) automating repetitive daily chores.</p>
+      <div class="notfound-container">
+        <div class="notfound-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <span>Jargon Not Recognized</span>
+        </div>
+        <p class="notfound-title">No match found for "<strong>${safeText}</strong>"</p>
+        <p class="secondary-desc">
+          We couldn't find a matching tech jargon or open-source tool in our summit database. Try searching for standard tech terms or click one of these popular summit terms to de-jargon it:
+        </p>
+        <div class="notfound-suggestions">
+          ${sampleChipsHtml}
+        </div>
+      </div>
     `;
+
     impactCard.classList.remove('hidden');
-    impactText.textContent = `At IDLIStack, we package these technical building blocks into ready-to-run open-source tools with zero server headaches.`;
+    impactText.textContent = `💡 Summit Booth Tip: Have a specific buzzword from your vendor proposals or grant applications? Ask an IDLIStack engineer at the booth to de-jargon it for you!`;
+
+    translationText.querySelectorAll('.notfound-suggestion-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        selectJargon(id);
+      });
+    });
+  }
+
+  function renderNotFoundReverseState(rawText) {
+    const safeText = escapeHtml(rawText);
+    const samplePhrases = [
+      { text: "Send bulk WhatsApp broadcasts", id: "whatomate" },
+      { text: "Collect surveys in remote offline villages", id: "kobotoolbox" },
+      { text: "Send newsletters without subscriber limits", id: "listmonk" },
+      { text: "Host secure private team chat", id: "mattermost" }
+    ];
+
+    const chipsHtml = samplePhrases.map(p => 
+      `<button type="button" class="notfound-suggestion-chip" data-id="${p.id}">${escapeHtml(p.text)}</button>`
+    ).join(' ');
+
+    translationText.innerHTML = `
+      <div class="notfound-container">
+        <div class="notfound-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <span>Need Not Recognized</span>
+        </div>
+        <p class="notfound-title">Could not map "${safeText}" to a tech spec</p>
+        <p class="secondary-desc">
+          Try describing a common NGO workflow in everyday language, or tap one of these impact examples:
+        </p>
+        <div class="notfound-suggestions">
+          ${chipsHtml}
+        </div>
+      </div>
+    `;
+
+    impactCard.classList.remove('hidden');
+    impactText.textContent = `💡 Summit Booth Tip: Describe your non-profit challenge to an IDLIStack engineer at the booth, and we'll architect the open-source solution together!`;
+
+    translationText.querySelectorAll('.notfound-suggestion-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        selectJargon(id);
+      });
+    });
   }
 
   function renderEmptyState() {
@@ -415,6 +606,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- "Check Caption" Modal & Share Card ---
   btnCheckCaption.addEventListener('click', () => {
+    if (!isCurrentTermRecognized) {
+      showToast("⚠️ Please enter or select a recognized tech term to generate your card!");
+      return;
+    }
     const quote = sourceInput.value.trim() || "“Just use the API to pull the donor list.”";
     const leadP = translationText.querySelector('.lead-analogy');
     const analogy = (leadP ? leadP.innerText : translationText.innerText).trim();
