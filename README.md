@@ -29,8 +29,8 @@ The **Tech De-jargoniser** bridges this gap through a clean, Google Translate-in
 3. **Widely Used Phrases Wall**:
    - One-click interactive chips: `Docker`, `SSL Certificate`, `Traffic spike`, `Plugin`, `Cron Job`, `Webhook`, `API`, `Database`, `Open Source`, `CI/CD`, `Cache`, `Microservices`, `Latency`, `2FA`, and more.
 
-4. **"Check Caption" & Downloadable Summit Card**:
-   - Clicking **"Check Caption"** opens a branded modal.
+4. **"Get Your Card" & Downloadable Summit Card**:
+   - Clicking **"Get Your Card"** opens a branded modal.
    - Generates an instant high-resolution PNG image card with the IDLIStack Summit branding, ready to download or share on LinkedIn/Twitter/WhatsApp.
 
 5. **Booth Engagement Activities**:
@@ -100,5 +100,5 @@ tech-dejargon/
 3. **Engagement Flow**:
    - Ask visitors: *"What tech word did a developer or vendor say that confused you?"*
    - Let them speak into the mic or type it in.
-   - Have them click **"Check Caption"** to download their custom de-jargonised card.
-   - Encourage them to try the **4-Question Jargon Quiz** to win IDLIStack stickers!
+   - Have them click **"Get Your Card"** to download their custom de-jargonised card.
+   - Encourage them to try the **Open Source Jargon Quiz** to win IDLIStack stickers and download their official Scorecard!
