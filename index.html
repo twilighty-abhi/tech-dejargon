@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech De-jargoniser | IDLIStack by T4GC</title>
+  <meta name="description" content="Translate tech buzzwords into clear, everyday non-profit and social impact English. Built by IDLIStack for the Annual Summit.">
+  <meta name="keywords" content="IDLIStack, T4GC, Tech De-jargoniser, Nonprofit Tech, Open Source, Annual Summit">
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+
+  <!-- Google Fonts: Inter & Manrope matching IDLIStack -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Top Ambient Banner for Summit Kiosk -->
+  <header class="summit-topbar">
+    <div class="summit-badge">
+      <span class="pulse-dot"></span>
+      <span class="summit-tag">Annual Summit 2026</span>
+      <span class="summit-sep">•</span>
+      <span class="summit-activity">Engagement Activity Booth</span>
+    </div>
+    <div class="topbar-actions">
+      <button id="btn-quiz" class="topbar-btn" title="Play De-jargon Mini Quiz">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        <span>Jargon Quiz</span>
+      </button>
+      <button id="btn-qr" class="topbar-btn" title="Scan to open on phone">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="8" x="3" y="3" rx="1"/><rect width="8" height="8" x="13" y="3" rx="1"/><rect width="8" height="8" x="3" y="13" rx="1"/><rect width="4" height="4" x="14" y="14" rx="0.5"/></svg>
+        <span>Mobile QR</span>
+      </button>
+      <button id="btn-kiosk" class="topbar-btn" title="Toggle Fullscreen Kiosk Mode">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        <span class="btn-text-kiosk">Kiosk</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- Brand Logo Header -->
+    <section class="brand-header">
+      <a href="https://idlistack.com" target="_blank" rel="noopener noreferrer" class="logo-link">
+        <img src="assets/logo-black.png" alt="IDLIStack by T4GC" class="brand-logo" width="220" height="54">
+      </a>
+      <h1 class="sr-only">IDLIStack Tech De-jargoniser</h1>
+      <p class="brand-subtitle">Translating tech speak into everyday social impact English</p>
+    </section>
+
+    <!-- Google-Translate-Style De-jargoniser Card -->
+    <section class="dejargon-card" id="dejargon-card">
+      <!-- Card Header: Language Selectors & Swap -->
+      <div class="card-header-bar">
+        <!-- Source Language Pill -->
+        <div class="lang-selector-group">
+          <div class="custom-select-pill" id="source-lang-pill">
+            <span class="pill-label" id="source-lang-text">Tech English</span>
+            <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <div class="dropdown-menu hidden" id="source-lang-dropdown">
+            <button class="dropdown-item active" data-val="tech">Tech English</button>
+            <button class="dropdown-item" data-val="dev-slack">Developer Slack Jargon</button>
+            <button class="dropdown-item" data-val="consultant">Consultant Buzzwords</button>
+          </div>
+        </div>
+
+        <!-- Swap Direction Button -->
+        <button id="btn-swap-direction" class="swap-direction-btn" title="Swap Translation Direction (Tech ⇆ Plain English)" aria-label="Swap translation direction">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/>
+          </svg>
+        </button>
+
+        <!-- Target Language Pill -->
+        <div class="lang-selector-group">
+          <div class="custom-select-pill" id="target-lang-pill">
+            <span class="pill-label" id="target-lang-text">Non-Tech English</span>
+            <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <div class="dropdown-menu hidden" id="target-lang-dropdown">
+            <button class="dropdown-item active" data-val="non-tech">Non-Tech English</button>
+            <button class="dropdown-item" data-val="eli5">Explain Like I'm 5</button>
+            <button class="dropdown-item" data-val="funder">Board / Funder Summary</button>
+            <button class="dropdown-item" data-val="tech-spec">Dev Action Spec</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Split Translation Workspace -->
+      <div class="translation-workspace">
+        <!-- Left Side: Source Input -->
+        <div class="workspace-pane source-pane">
+          <div class="input-content-area">
+            <textarea 
+              id="source-input" 
+              class="quote-textarea" 
+              placeholder="Paste or type any tech jargon (e.g., 'Just use the API to pull the donor list.')..."
+              rows="5"
+              spellcheck="false"
+            >“Just use the API to pull the donor list.”</textarea>
+            
+            <button id="btn-clear-input" class="clear-input-btn hidden" title="Clear text" aria-label="Clear input">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+
+          <!-- Bottom Left Tools -->
+          <div class="pane-footer source-footer">
+            <div class="input-tools-left">
+              <!-- Mic / Voice Input -->
+              <button id="btn-mic" class="tool-icon-btn" title="Speak via Microphone (Speech to Text)" aria-label="Voice input">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                <span class="mic-wave"></span>
+              </button>
+
+              <!-- Keyboard / Sample prompts -->
+              <button id="btn-samples" class="tool-icon-btn" title="Pick from Common Summit Quotes" aria-label="Sample sentences">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>
+              </button>
+
+              <!-- Lens / Surprise Me / Randomizer -->
+              <button id="btn-surprise" class="tool-icon-btn" title="Surprise Me! (Random Summit Jargon)" aria-label="Surprise phrase">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>
+              </button>
+            </div>
+
+            <div class="input-char-counter" id="char-counter">38 characters</div>
+          </div>
+        </div>
+
+        <!-- Right Side: Translated Output -->
+        <div class="workspace-pane target-pane">
+          <div class="output-content-area" id="output-container">
+            <div class="translation-body" id="translation-text">
+              <!-- Default translation text matching the mockup -->
+              <p class="lead-analogy">Think of an API like a waiter. You don't go to the kitchen to make your own food. You tell the waiter, they take the request to the kitchen, and bring back what you asked for.</p>
+              <p class="secondary-desc">APIs work the same way. They let different apps and systems ask each other for information or actions without needing to know what's happening behind the scenes.</p>
+            </div>
+
+            <!-- Impact highlight card -->
+            <div class="impact-card" id="impact-card">
+              <div class="impact-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span>For Your Impact Team</span>
+              </div>
+              <p class="impact-text" id="impact-text">Instead of manually downloading CSVs and copying donor lists, an API lets your website talk directly to your CRM automatically.</p>
+            </div>
+          </div>
+
+          <!-- Bottom Right Tools -->
+          <div class="pane-footer target-footer">
+            <div class="output-tools-left">
+              <!-- Listen / Text-to-Speech -->
+              <button id="btn-speak" class="tool-icon-btn" title="Read Aloud (Text to Speech)" aria-label="Speak translation">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+              </button>
+              
+              <!-- Copy to clipboard -->
+              <button id="btn-copy" class="tool-icon-btn" title="Copy translation to clipboard" aria-label="Copy">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              </button>
+            </div>
+
+            <!-- "Check Caption" / Share Card Button (as in user screenshot) -->
+            <button id="btn-check-caption" class="caption-pill-btn" title="Generate Branded Summit Quote Card">
+              <span>Check Caption</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Widely Used Phrases Section -->
+      <div class="phrases-section">
+        <div class="phrases-header">
+          <span class="phrases-title">Widely Used Phrases</span>
+          <span class="phrases-hint">Click any phrase to de-jargonise instantly</span>
+        </div>
+        <div class="phrases-chip-grid" id="phrases-chips">
+          <!-- Populated by dictionary.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer with Official Domain -->
+    <footer class="app-footer">
+      <a href="https://idlistack.com" target="_blank" rel="noopener noreferrer" class="footer-link">
+        www.idlistack.com
+      </a>
+      <p class="footer-note">Open-source hosting made effortless for impact organisations • Tech4Good Community (T4GC)</p>
+    </footer>
+  </main>
+
+  <!-- MODAL: Check Caption / Summit Card Export -->
+  <div class="modal-overlay hidden" id="caption-modal">
+    <div class="modal-card">
+      <button class="modal-close-btn" id="modal-close">&times;</button>
+      <div class="modal-header">
+        <h3>IDLIStack Summit Card</h3>
+        <p>Share this de-jargonised insight with your team or on social media</p>
+      </div>
+
+      <!-- Live Preview Canvas / Card -->
+      <div class="shareable-quote-card" id="quote-card-preview">
+        <div class="quote-card-top">
+          <img src="assets/logo-black.png" alt="IDLIStack" class="quote-card-logo">
+          <span class="quote-card-tag">#TechDejargon</span>
+        </div>
+        <div class="quote-card-bubble source">
+          <span class="label">Tech Jargon:</span>
+          <p id="modal-quote-text">“Just use the API to pull the donor list.”</p>
+        </div>
+        <div class="quote-card-bubble translated">
+          <span class="label">De-jargonised:</span>
+          <p id="modal-analogy-text">Think of an API like a waiter. You tell the waiter, they take the request to the kitchen, and bring back what you asked for.</p>
+        </div>
+        <div class="quote-card-footer">
+          <span>De-jargonised at IDLIStack Annual Summit • <strong style="color:#ED4690;">idlistack.com</strong></span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-copy-card-text" class="btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          Copy Text
+        </button>
+        <button id="btn-download-card" class="btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Card
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Summit Mini Quiz Challenge -->
+  <div class="modal-overlay hidden" id="quiz-modal">
+    <div class="modal-card quiz-card">
+      <button class="modal-close-btn" id="quiz-close">&times;</button>
+      <div class="quiz-header">
+        <span class="quiz-badge">Booth Engagement Challenge</span>
+        <h3 id="quiz-title">De-jargon Quiz Challenge</h3>
+        <p id="quiz-progress">Question 1 of 4</p>
+      </div>
+
+      <div class="quiz-content" id="quiz-content">
+        <div class="quiz-question-box" id="quiz-question-text">
+          Loading question...
+        </div>
+        <div class="quiz-options-list" id="quiz-options">
+          <!-- Options loaded via JS -->
+        </div>
+        <div class="quiz-feedback hidden" id="quiz-feedback">
+          <!-- Feedback explanation -->
+        </div>
+      </div>
+
+      <div class="quiz-footer">
+        <button id="btn-next-quiz" class="btn-primary" disabled>Next Question</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Mobile QR Code -->
+  <div class="modal-overlay hidden" id="qr-modal">
+    <div class="modal-card qr-card-modal">
+      <button class="modal-close-btn" id="qr-close">&times;</button>
+      <h3>Scan to Open on Mobile</h3>
+      <p>Summit attendees can try the De-jargoniser on their phones!</p>
+      <div class="qr-code-placeholder" id="qr-code-container">
+        <!-- SVG QR Code rendered dynamically -->
+      </div>
+      <p class="qr-url-text">https://idlistack.com</p>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden">
+    <span id="toast-message">Copied to clipboard!</span>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/dictionary.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
