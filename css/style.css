@@ -49,6 +49,11 @@
   padding: 0;
 }
 
+/* Global Utility Classes */
+.hidden {
+  display: none !important;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-page);
@@ -251,9 +256,19 @@ body {
   background: #F8FAFC;
 }
 
+.custom-select-pill.open {
+  border-color: #3B82F6;
+  background: #F8FAFC;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
 .chevron-icon {
   color: #64748B;
   transition: transform var(--transition-fast);
+}
+
+.custom-select-pill.open .chevron-icon {
+  transform: rotate(180deg);
 }
 
 .dropdown-menu {

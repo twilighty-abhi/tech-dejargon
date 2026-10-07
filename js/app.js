@@ -44,6 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // State
   let isReverseMode = false; // false: Tech -> Plain, true: Plain -> Tech
+  let currentTargetMode = "non-tech"; // "non-tech", "eli5", "funder", "tech-spec"
+  let currentSourceMode = "tech"; // "tech", "dev-slack", "consultant"
   let currentActiveId = "api";
   let isRecording = false;
   let recognition = null;
@@ -124,12 +126,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (matchedItem) {
-      renderTranslation({
-        leadAnalogy: matchedItem.plainExplanation.split('. ').slice(0, 3).join('. ') + '.',
-        secondaryDesc: matchedItem.plainExplanation.split('. ').slice(3).join('. ') || `In simpler terms: ${matchedItem.simpleAnalogy}`,
-        impact: matchedItem.impactContext,
-        analogySummary: matchedItem.simpleAnalogy
-      });
+      if (currentTargetMode === 'eli5') {
+        renderTranslation({
+          leadAnalogy: `👶 In simple words: ${matchedItem.simpleAnalogy}`,
+          secondaryDesc: `Think of it like this: ${matchedItem.plainExplanation.split('. ')[0]}. That way you don't have to worry about complicated computer things!`,
+          impact: `Saves time and avoids mistakes for your team.`
+        });
+      } else if (currentTargetMode === 'funder') {
+        renderTranslation({
+          leadAnalogy: `📊 Executive & Funder Summary: ${matchedItem.term} (${matchedItem.category}) is core digital infrastructure that mitigates operational risk and scales program impact.`,
+          secondaryDesc: `Strategic Value: Eliminates manual administrative overhead, guarantees institutional reliability, and ensures compliance with donor data governance standards.`,
+          impact: matchedItem.impactContext
+        });
+      } else if (currentTargetMode === 'tech-spec') {
+        renderTranslation({
+          leadAnalogy: `🛠️ Developer Specification: ${matchedItem.reverseTechSpec}`,
+          secondaryDesc: `Pattern: ${matchedItem.term} in ${matchedItem.category}. On IDLIStack, deploy via standardized containerized stack with automated monitoring.`,
+          impact: `Self-hosted on IDLIStack without recurring SaaS subscription costs.`
+        });
+      } else {
+        renderTranslation({
+          leadAnalogy: matchedItem.plainExplanation.split('. ').slice(0, 3).join('. ') + '.',
+          secondaryDesc: matchedItem.plainExplanation.split('. ').slice(3).join('. ') || `In simpler terms: ${matchedItem.simpleAnalogy}`,
+          impact: matchedItem.impactContext,
+          analogySummary: matchedItem.simpleAnalogy
+        });
+      }
     } else {
       // Generic intelligent deconstruction for custom input
       renderCustomTranslation(text);
@@ -615,36 +637,79 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // --- Dropdown Toggles ---
+  // --- Robust Dropdown State Management ---
+  function closeAllDropdowns() {
+    sourceLangDropdown.classList.add('hidden');
+    targetLangDropdown.classList.add('hidden');
+    sourceLangPill.classList.remove('open');
+    targetLangPill.classList.remove('open');
+  }
+
+  function toggleDropdown(dropdownToToggle, pillToToggle, otherDropdown, otherPill) {
+    const isCurrentlyHidden = dropdownToToggle.classList.contains('hidden');
+    closeAllDropdowns();
+    if (isCurrentlyHidden) {
+      dropdownToToggle.classList.remove('hidden');
+      pillToToggle.classList.add('open');
+    }
+  }
+
   sourceLangPill.addEventListener('click', (e) => {
     e.stopPropagation();
-    sourceLangDropdown.classList.toggle('hidden');
-    targetLangDropdown.classList.add('hidden');
+    toggleDropdown(sourceLangDropdown, sourceLangPill, targetLangDropdown, targetLangPill);
   });
 
   targetLangPill.addEventListener('click', (e) => {
     e.stopPropagation();
-    targetLangDropdown.classList.toggle('hidden');
-    sourceLangDropdown.classList.add('hidden');
+    toggleDropdown(targetLangDropdown, targetLangPill, sourceLangDropdown, sourceLangPill);
   });
 
+  // Handle source options
   document.querySelectorAll('#source-lang-dropdown .dropdown-item').forEach(item => {
-    item.addEventListener('click', () => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('#source-lang-dropdown .dropdown-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      currentSourceMode = item.dataset.val || 'tech';
       sourceLangText.textContent = item.textContent;
-      sourceLangDropdown.classList.add('hidden');
+      closeAllDropdowns();
+
+      if (currentSourceMode === 'dev-slack') {
+        sourceInput.value = "“PR is blocked, waiting on CI/CD runner to finish the integration build.”";
+        updateInputState();
+      } else if (currentSourceMode === 'consultant') {
+        sourceInput.value = "“We must orchestrate a synergized cloud-native microservices transformation paradigm.”";
+        updateInputState();
+      }
+      runTranslation();
     });
   });
 
+  // Handle target options
   document.querySelectorAll('#target-lang-dropdown .dropdown-item').forEach(item => {
-    item.addEventListener('click', () => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('#target-lang-dropdown .dropdown-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      currentTargetMode = item.dataset.val || 'non-tech';
       targetLangText.textContent = item.textContent;
-      targetLangDropdown.classList.add('hidden');
+      closeAllDropdowns();
+      runTranslation();
     });
   });
 
-  window.addEventListener('click', () => {
-    sourceLangDropdown.classList.add('hidden');
-    targetLangDropdown.classList.add('hidden');
+  // Close dropdowns on ANY click outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.lang-selector-group')) {
+      closeAllDropdowns();
+    }
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeAllDropdowns();
+    }
   });
 
   // Close modals on background click
