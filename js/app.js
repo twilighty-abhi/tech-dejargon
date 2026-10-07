@@ -198,8 +198,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       } else {
         renderTranslation({
-          leadAnalogy: matchedItem.plainExplanation.split('. ').slice(0, 3).join('. ') + '.',
-          secondaryDesc: matchedItem.plainExplanation.split('. ').slice(3).join('. ') || `In simpler terms: ${matchedItem.simpleAnalogy}`,
+          leadAnalogy: matchedItem.plainExplanation.trim(),
+          secondaryDesc: matchedItem.simpleAnalogy ? `In simpler terms: ${matchedItem.simpleAnalogy}` : '',
           impact: matchedItem.impactContext,
           analogySummary: matchedItem.simpleAnalogy
         });
@@ -415,7 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnCheckCaption.addEventListener('click', () => {
     const quote = sourceInput.value.trim() || "“Just use the API to pull the donor list.”";
     const leadP = translationText.querySelector('.lead-analogy');
-    const analogy = leadP ? leadP.innerText : translationText.innerText.slice(0, 160) + '...';
+    const analogy = (leadP ? leadP.innerText : translationText.innerText).trim();
 
     document.getElementById('modal-quote-text').textContent = quote;
     document.getElementById('modal-analogy-text').textContent = analogy;
