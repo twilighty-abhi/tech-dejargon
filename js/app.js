@@ -766,6 +766,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCopyScoreShare = document.getElementById('btn-copy-score-share');
   const btnDownloadScorecard = document.getElementById('btn-download-scorecard');
 
+  // Single-send lock to guarantee exactly 1 submission per quiz session
+  let isQuizScoreSynced = false;
+  let quizSyncIdleTimer = null;
+
   // Fisher-Yates array shuffling algorithm
   function shuffleArray(arr) {
     const array = [...arr];
@@ -780,6 +784,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // randomized in different orders with shuffled options behind the scenes
   function startNewQuizSession() {
     if (typeof SUMMIT_QUIZ_QUESTIONS === 'undefined' || !SUMMIT_QUIZ_QUESTIONS.length) return;
+
+    // Reset single-sync guard for the new round
+    isQuizScoreSynced = false;
+    if (quizSyncIdleTimer) {
+      clearTimeout(quizSyncIdleTimer);
+      quizSyncIdleTimer = null;
+    }
+    if (scorecardNameInput) {
+      scorecardNameInput.value = '';
+    }
 
     // 1. Automatically shuffle full question pool behind the scenes
     const pool = shuffleArray(SUMMIT_QUIZ_QUESTIONS);
@@ -818,6 +832,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   quizClose.addEventListener('click', () => {
+    finalizeAndSyncQuizScore('modal_close');
     quizModal.classList.add('hidden');
   });
 
@@ -921,43 +936,70 @@ document.addEventListener('DOMContentLoaded', () => {
     if (scRankTitle) scRankTitle.textContent = rankTitle;
     if (scRankDesc) scRankDesc.textContent = rankDesc;
 
-    let debounceTimer = null;
-    const sendScorePayload = () => {
-      const attendeeName = (scorecardNameInput && scorecardNameInput.value.trim()) || "Social Impact Leader";
-      syncScoreToGoogleSheet({
-        timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
-        name: attendeeName,
-        contact: "-",
-        score: `${quizScore}/${total}`,
-        total: total,
-        accuracy: pct,
-        rank: rankTitle,
-        level: "Open Source Tech De-jargoniser",
-        device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop/Kiosk",
-        userAgent: navigator.userAgent || ""
-      });
-    };
-
     if (scorecardNameInput) {
-      if (scDisplayName) {
-        scDisplayName.textContent = scorecardNameInput.value.trim() || "Social Impact Leader";
-      }
+      scDisplayName.textContent = scorecardNameInput.value.trim() || "Social Impact Leader";
       scorecardNameInput.oninput = (e) => {
         if (scDisplayName) {
           scDisplayName.textContent = e.target.value.trim() || "Social Impact Leader";
         }
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          sendScorePayload();
-        }, 800);
+        // If attendee is typing their name, wait until they stop typing for 2.5s before syncing
+        if (!isQuizScoreSynced) {
+          clearTimeout(quizSyncIdleTimer);
+          quizSyncIdleTimer = setTimeout(() => {
+            finalizeAndSyncQuizScore('name_input_idle');
+          }, 2500);
+        }
       };
-      scorecardNameInput.onchange = sendScorePayload;
+      scorecardNameInput.onchange = () => {
+        finalizeAndSyncQuizScore('name_change');
+      };
     }
 
-    // Auto-sync immediately when scorecard is generated
-    sendScorePayload();
+    // Fallback: If attendee looks at the card without typing or clicking, sync once after 6s
+    clearTimeout(quizSyncIdleTimer);
+    quizSyncIdleTimer = setTimeout(() => {
+      finalizeAndSyncQuizScore('scorecard_idle');
+    }, 6000);
 
     showToast("🎉 Scorecard generated! Download or share your certificate.");
+  }
+
+  // Finalize and sync score to Google Sheet backend EXACTLY ONCE per quiz session
+  function finalizeAndSyncQuizScore(triggerSource = 'auto') {
+    if (isQuizScoreSynced) return; // STRICT SINGLE-EXECUTION LOCK: Prevents duplicates
+    isQuizScoreSynced = true;
+
+    if (quizSyncIdleTimer) {
+      clearTimeout(quizSyncIdleTimer);
+      quizSyncIdleTimer = null;
+    }
+
+    const total = activeQuizQuestions.length || 5;
+    const pct = Math.round((quizScore / total) * 100);
+
+    let rankTitle = "💡 De-jargon Apprentice";
+    if (quizScore === total) {
+      rankTitle = "🏆 Chief Open Source Hero";
+    } else if (quizScore >= Math.ceil(total * 0.8)) {
+      rankTitle = "🌟 Tech4Good Champion";
+    } else if (quizScore >= Math.ceil(total * 0.5)) {
+      rankTitle = "🚀 Open Source Explorer";
+    }
+
+    const attendeeName = (scorecardNameInput && scorecardNameInput.value.trim()) || "Social Impact Leader";
+
+    syncScoreToGoogleSheet({
+      timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+      name: attendeeName,
+      contact: "-",
+      score: `${quizScore}/${total}`,
+      total: total,
+      accuracy: pct,
+      rank: rankTitle,
+      level: "Open Source Tech De-jargoniser",
+      device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop/Kiosk",
+      userAgent: navigator.userAgent || ""
+    });
   }
 
   // --- Backend Google Sheet Leaderboard Sync (Silent Background Engine) ---
@@ -1034,6 +1076,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnRetakeQuiz) {
     btnRetakeQuiz.addEventListener('click', () => {
+      finalizeAndSyncQuizScore('retake');
       startNewQuizSession();
       showToast("🔄 Fresh 5-question round loaded with new questions & options!");
     });
@@ -1041,8 +1084,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnCopyScoreShare) {
     btnCopyScoreShare.addEventListener('click', () => {
+      finalizeAndSyncQuizScore('share');
       const name = scorecardNameInput ? scorecardNameInput.value.trim() : "Social Impact Leader";
-      const total = activeQuizQuestions.length || 1;
+      const total = activeQuizQuestions.length || 5;
       const shareText = `🏆 I scored ${quizScore}/${total} on the Open Source De-jargon Challenge at the IDLIStack Annual Summit 2026!\n\n` +
         `Empowering non-profits with self-hosted, sovereign open-source tools. Check it out at https://idlistack.com\n\n` +
         `#TechDejargon #IDLIStack #Tech4Good #OpenSource #AnnualSummit`;
@@ -1055,6 +1099,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnDownloadScorecard) {
     btnDownloadScorecard.addEventListener('click', () => {
+      finalizeAndSyncQuizScore('download');
       generateScorecardCanvasImage();
     });
   }
