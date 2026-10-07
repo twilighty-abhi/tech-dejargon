@@ -8,8 +8,7 @@
 // ========================================================================
 // Paste your Google Apps Script Web App URL here to silently collect scores:
 // e.g. "https://script.google.com/macros/s/AKfycb.../exec"
-// This runs 100% in the backend with ZERO popups, dialogs, or sync notices shown to users!
-const GOOGLE_SHEET_BACKEND_URL = "";
+const GOOGLE_SHEET_BACKEND_URL = "https://script.google.com/a/macros/tech4goodcommunity.com/s/AKfycbzxTY2YPEkdBkp4xmZRDfXzGQIlUKwrMLCim_IZuj919C9E1DURR3BGM8fuXh9ziz7M/exec";
 
 document.addEventListener('DOMContentLoaded', () => {
   // --- DOM Elements ---
