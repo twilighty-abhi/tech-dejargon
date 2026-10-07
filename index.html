@@ -309,10 +309,28 @@
           <p>Personalize and download your official certification from IDLIStack</p>
         </div>
 
-        <!-- Name Input -->
-        <div class="scorecard-input-group">
-          <label for="scorecard-name-input">Attendee / Organization Name:</label>
-          <input type="text" id="scorecard-name-input" class="scorecard-name-field" placeholder="e.g. Priya Sharma, Pratham" value="Social Impact Leader">
+        <!-- Name & Contact Inputs -->
+        <div class="scorecard-inputs-grid">
+          <div class="scorecard-input-group">
+            <label for="scorecard-name-input">Attendee / Organization Name:</label>
+            <input type="text" id="scorecard-name-input" class="scorecard-name-field" placeholder="e.g. Priya Sharma, Pratham" value="Social Impact Leader">
+          </div>
+          <div class="scorecard-input-group">
+            <label for="scorecard-contact-input">Email or Phone (Optional for Leaderboard):</label>
+            <input type="text" id="scorecard-contact-input" class="scorecard-name-field" placeholder="e.g. priya@ngo.org or 9876543210">
+          </div>
+        </div>
+
+        <!-- Real-time Google Sheet Sync Status & Settings -->
+        <div class="scorecard-sync-bar">
+          <div class="sync-status-indicator" id="sheet-sync-status">
+            <span class="sync-dot" id="sync-dot"></span>
+            <span class="sync-text" id="sync-status-text">Google Sheet: Local Mode (Not Connected)</span>
+          </div>
+          <button type="button" class="btn-sheet-settings" id="btn-sheet-settings" title="Connect or Configure Google Sheet Backend">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Google Sheet Setup</span>
+          </button>
         </div>
 
         <!-- Live Scorecard Visual Card -->
@@ -400,6 +418,61 @@
         <button id="btn-copy-live-url" class="btn-secondary">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
           Copy URL
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Google Sheet Backend Setup -->
+  <div class="modal-overlay hidden" id="sheet-modal">
+    <div class="modal-card sheet-card-modal">
+      <button class="modal-close-btn" id="sheet-modal-close">&times;</button>
+      
+      <div class="sheet-modal-header">
+        <span class="sheet-modal-badge">📊 Google Sheet Backend</span>
+        <h3>Automatic Summit Leaderboard</h3>
+        <p>Collect attendee names, contact info, quiz scores, accuracy, and certifications in real time into your own private Google Sheet.</p>
+      </div>
+
+      <div class="sheet-setup-steps">
+        <div class="setup-step">
+          <span class="step-num">1</span>
+          <div>
+            <strong>Create a Google Sheet:</strong> Open a new Google Sheet and click <em>Extensions &gt; Apps Script</em>.
+          </div>
+        </div>
+        <div class="setup-step">
+          <span class="step-num">2</span>
+          <div>
+            <strong>Paste Free Apps Script:</strong> Click <em>"Copy Apps Script Code"</em> below and paste it into the editor.
+          </div>
+        </div>
+        <div class="setup-step">
+          <span class="step-num">3</span>
+          <div>
+            <strong>Deploy as Web App:</strong> In Apps Script, click <em>Deploy &gt; New deployment &gt; Select type: Web app</em>. Set <em>"Who has access"</em> to <strong>"Anyone"</strong> and click Deploy.
+          </div>
+        </div>
+        <div class="setup-step">
+          <span class="step-num">4</span>
+          <div>
+            <strong>Paste &amp; Connect:</strong> Paste your Web App URL below and click <em>"Save &amp; Test Connection"</em>!
+          </div>
+        </div>
+      </div>
+
+      <div class="scorecard-input-group" style="margin-top: 14px;">
+        <label for="google-sheet-url-input">Google Apps Script Web App URL:</label>
+        <input type="url" id="google-sheet-url-input" class="scorecard-name-field" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
+      </div>
+
+      <div class="modal-actions" style="margin-top: 16px;">
+        <button id="btn-copy-apps-script" class="btn-secondary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          Copy Apps Script Code
+        </button>
+        <button id="btn-save-sheet-url" class="btn-primary">
+          Save &amp; Test Connection
         </button>
       </div>
     </div>

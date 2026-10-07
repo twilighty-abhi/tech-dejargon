@@ -102,3 +102,28 @@ tech-dejargon/
    - Let them speak into the mic or type it in.
    - Have them click **"Get Your Card"** to download their custom de-jargonised card.
    - Encourage them to try the **Open Source Jargon Quiz** to win IDLIStack stickers and download their official Scorecard!
+
+---
+
+## 📊 Google Sheet Automatic Leaderboard Backend
+
+You can connect any free Google Sheet to automatically record attendee names, contact info, quiz scores, accuracy percentages, and certification ranks in real time!
+
+### 60-Second Setup:
+
+1. Create a new Google Sheet (e.g. named `IDLIStack Summit 2026 Quiz Leaderboard`).
+2. In Google Sheets, click **Extensions > Apps Script**.
+3. In the IDLIStack De-jargoniser, click **Google Sheet Setup** and click **"Copy Apps Script Code"**.
+4. Paste the code into the Apps Script editor and click **Save** (💾).
+5. Click **Deploy > New deployment**:
+   - **Type**: Web app
+   - **Execute as**: Me
+   - **Who has access**: **Anyone** *(Crucial for frontend logging without login)*
+6. Click **Deploy**, authorize access, and copy the **Web App URL** (`https://script.google.com/macros/s/.../exec`).
+7. Paste this URL into the De-jargoniser's **Google Sheet Setup** dialog and click **Save & Test Connection**.
+
+A test row will immediately populate your Google Sheet, and all subsequent quiz participants' names and scores will sync automatically!
+
+### Offline Resilient:
+If the summit Wi-Fi drops at the venue, submissions are automatically queued in the browser's local storage and flushed to the Google Sheet as soon as connectivity resumes.
+
