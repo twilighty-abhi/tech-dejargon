@@ -713,7 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-copy-card-text').addEventListener('click', () => {
     const quote = document.getElementById('modal-quote-text').innerText;
     const analogy = document.getElementById('modal-analogy-text').innerText;
-    const shareText = `Tech Jargon: ${quote}\nDe-jargonised: ${analogy}\n\nDe-jargonised at Idlistack Annual Summit • https://idlistack.com`;
+    const shareText = `Tech Jargon: ${quote}\nDe-jargonised: ${analogy}\n\nDe-jargonised at T4GC Annual Summit 2026 • https://idlistack.com • Event: https://yuyu.idliapps.com/t4gcsummit/t4gc-summit-2026`;
     
     navigator.clipboard.writeText(shareText).then(() => {
       showToast("Card text copied for sharing!");
@@ -798,7 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sub-tag under logo
     ctx.fillStyle = '#ED4690';
     ctx.font = 'bold 20px Inter, sans-serif';
-    ctx.fillText('ANNUAL SUMMIT 2026 • TECH DE-JARGONISER', 60, 130);
+    ctx.fillText('T4GC ANNUAL SUMMIT 2026 • TECH DE-JARGONISER', 60, 130);
 
     // Jargon Box
     ctx.fillStyle = '#F8FAFC';
@@ -836,7 +836,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Footer with corrected Idlistack spelling
     ctx.fillStyle = '#64748B';
     ctx.font = '600 20px Inter, sans-serif';
-    ctx.fillText('De-jargonised at Idlistack Annual Summit • www.idlistack.com', 60, 575);
+    ctx.fillText('De-jargonised at T4GC Annual Summit 2026 • www.idlistack.com', 60, 575);
 
     // Download Ultra-High-Quality JPG
     const link = document.createElement('a');
@@ -1264,9 +1264,11 @@ document.addEventListener('DOMContentLoaded', () => {
       finalizeAndSyncQuizScore('share');
       const name = scorecardNameInput ? scorecardNameInput.value.trim() : "Social Impact Leader";
       const total = activeQuizQuestions.length || 5;
-      const shareText = `🏆 I scored ${quizScore}/${total} on the Open Source De-jargon Challenge at the Idlistack Annual Summit 2026!\n\n` +
-        `Empowering non-profits with self-hosted, sovereign open-source tools. Check it out at https://idlistack.com\n\n` +
-        `#TechDejargon #Idlistack #Tech4Good #OpenSource #AnnualSummit`;
+      const shareText = `🏆 I scored ${quizScore}/${total} on the Open Source De-jargon Challenge at the T4GC Annual Summit 2026!\n\n` +
+        `Empowering non-profits with self-hosted, sovereign open-source tools.\n` +
+        `Event: https://yuyu.idliapps.com/t4gcsummit/t4gc-summit-2026\n` +
+        `Tech: https://idlistack.com\n\n` +
+        `#T4GCSummit #TechDejargon #IDLIStack #Tech4Good #OpenSource`;
       
       navigator.clipboard.writeText(shareText).then(() => {
         showToast("Scorecard share text copied to clipboard!");
@@ -1321,24 +1323,24 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.fillText('Idlistack by T4GC', 60, 85);
     }
 
-    // Top Right Pill Tag: Annual Summit 2026
+    // Top Right Pill Tag: T4GC Summit 2026
     ctx.fillStyle = '#FFF0F6';
     ctx.strokeStyle = '#ED4690';
     ctx.lineWidth = 1.5;
-    roundRect(ctx, 920, 50, 220, 40, 20);
+    roundRect(ctx, 890, 50, 250, 40, 20);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#ED4690';
     ctx.font = 'bold 18px Inter, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Annual Summit 2026', 1030, 76);
+    ctx.fillText('T4GC Summit 2026', 1015, 76);
     ctx.textAlign = 'left';
 
     // Sub-tag under Logo
     ctx.fillStyle = '#ED4690';
     ctx.font = 'bold 20px Inter, sans-serif';
-    ctx.fillText('ANNUAL SUMMIT 2026 • OFFICIAL CERTIFICATION', 60, 128);
+    ctx.fillText('T4GC ANNUAL SUMMIT 2026 • OFFICIAL CERTIFICATION', 60, 128);
 
     // Certificate Title
     ctx.fillStyle = '#64748B';
@@ -1395,7 +1397,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Footer with corrected Idlistack spelling
     ctx.fillStyle = '#64748B';
     ctx.font = '600 18px Inter, sans-serif';
-    ctx.fillText('Verified at Idlistack Annual Summit • Open-source hosting made effortless • www.idlistack.com', 60, 615);
+    ctx.fillText('Verified at T4GC Annual Summit 2026 • Open-source hosting made effortless • www.idlistack.com', 60, 615);
 
     // Download Ultra-High-Quality JPG
     const link = document.createElement('a');

@@ -1,7 +1,8 @@
 # Tech De-jargoniser by IDLIStack (T4GC)
 
 > **Translate tech speak into everyday social impact English.**  
-> An interactive engagement activity designed for the **IDLIStack Annual Summit 2026**.
+> An interactive engagement activity designed for the **T4GC Annual Summit 2026**.  
+> 🎪 **Official Event Details**: [https://yuyu.idliapps.com/t4gcsummit/t4gc-summit-2026](https://yuyu.idliapps.com/t4gcsummit/t4gc-summit-2026)
 
 ![IDLIStack De-jargoniser Logo](assets/logo-black.png)
 
@@ -11,7 +12,7 @@
 
 At non-profit and social sector summits, leaders, program managers, and donors are frequently inundated with technical jargon from developers, vendors, and consultants (*"Just use the API to pull the donor list"*, *"We need to containerize the database in Docker"*, *"The webhook failed"*, etc.).
 
-The **Tech De-jargoniser** bridges this gap through a clean, Google Translate-inspired interface matching **IDLIStack's official brand identity** (`idlistack.com` by Tech4Good Community / T4GC).
+The **Tech De-jargoniser** bridges this gap through a clean, Google Translate-inspired interface matching **IDLIStack's official brand identity** (`idlistack.com` by Tech4Good Community / T4GC) for attendees of the **T4GC Annual Summit 2026**.
 
 ---
 
@@ -115,7 +116,7 @@ The application records attendee names, quiz scores, accuracy percentages, and c
 
 ### 60-Second Organizer Setup:
 
-1. Create a new Google Sheet (e.g. named `IDLIStack Summit 2026 Quiz Leaderboard`).
+1. Create a new Google Sheet (e.g. named `T4GC Summit 2026 Quiz Leaderboard`).
 2. In Google Sheets, click **Extensions > Apps Script**.
 3. Replace any code with this snippet:
 ```javascript
