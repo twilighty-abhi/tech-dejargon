@@ -1552,8 +1552,8 @@ body.kiosk-mode .translation-body {
     display: none;
   }
 
-  .btn-text-kiosk {
-    display: none;
+  #btn-kiosk {
+    display: none !important;
   }
 
   .sc-stats-grid {
