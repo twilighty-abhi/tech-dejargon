@@ -1234,22 +1234,73 @@ body {
 .qr-card-modal {
   text-align: center;
   align-items: center;
-  max-width: 400px;
+  max-width: 440px;
+}
+
+.qr-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+  margin-top: 4px;
+}
+
+.qr-header p {
+  font-size: 0.825rem;
+  color: var(--color-muted);
+  margin-top: 4px;
 }
 
 .qr-code-placeholder {
   margin: 16px 0;
   padding: 16px;
   background: white;
-  border: 2px dashed #E2E8F0;
-  border-radius: 16px;
-  display: inline-block;
+  border: 2px solid rgba(237, 70, 144, 0.25);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(237, 70, 144, 0.1);
+  min-width: 232px;
+  min-height: 232px;
 }
 
-.qr-url-text {
-  font-size: 0.9rem;
+.qr-code-placeholder canvas,
+.qr-code-placeholder img {
+  display: block;
+  margin: 0 auto;
+  border-radius: 8px;
+}
+
+.qr-url-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  width: 100%;
+  margin-bottom: 8px;
+  word-break: break-all;
+}
+
+.qr-url-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.qr-url-link {
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--color-primary);
+  text-decoration: none;
+  font-family: var(--font-display);
+}
+
+.qr-url-link:hover {
+  text-decoration: underline;
 }
 
 /* Toast Message */

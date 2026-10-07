@@ -839,40 +839,65 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function renderQrCode() {
-    // Generate clean SVG QR-style graphic
+    const currentUrl = window.location.href;
+    const qrLink = document.getElementById('qr-live-url');
+    if (qrLink) {
+      qrLink.textContent = currentUrl;
+      qrLink.href = currentUrl;
+    }
+
     const container = document.getElementById('qr-code-container');
+    container.innerHTML = '';
+
+    if (typeof QRCode !== 'undefined') {
+      try {
+        new QRCode(container, {
+          text: currentUrl,
+          width: 200,
+          height: 200,
+          colorDark: "#111827",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } catch (err) {
+        console.error("QRCode generation error:", err);
+        renderFallbackQr(container);
+      }
+    } else {
+      renderFallbackQr(container);
+    }
+  }
+
+  function renderFallbackQr(container) {
     container.innerHTML = `
-      <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="200" height="200" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect width="180" height="180" fill="white"/>
-        <!-- Corners -->
         <rect x="15" y="15" width="45" height="45" rx="6" stroke="#111827" stroke-width="8"/>
         <rect x="27" y="27" width="21" height="21" rx="3" fill="#ED4690"/>
-        
         <rect x="120" y="15" width="45" height="45" rx="6" stroke="#111827" stroke-width="8"/>
         <rect x="132" y="27" width="21" height="21" rx="3" fill="#ED4690"/>
-        
         <rect x="15" y="120" width="45" height="45" rx="6" stroke="#111827" stroke-width="8"/>
         <rect x="27" y="132" width="21" height="21" rx="3" fill="#ED4690"/>
-        
-        <!-- Pattern Dots -->
         <rect x="75" y="25" width="12" height="12" rx="2" fill="#111827"/>
         <rect x="95" y="25" width="12" height="12" rx="2" fill="#111827"/>
         <rect x="75" y="45" width="12" height="12" rx="2" fill="#ED4690"/>
         <rect x="95" y="55" width="12" height="12" rx="2" fill="#111827"/>
-        
-        <rect x="25" y="75" width="12" height="12" rx="2" fill="#111827"/>
-        <rect x="45" y="85" width="12" height="12" rx="2" fill="#111827"/>
         <rect x="75" y="75" width="30" height="30" rx="4" fill="#ED4690"/>
         <rect x="120" y="75" width="15" height="15" rx="2" fill="#111827"/>
-        <rect x="145" y="85" width="15" height="15" rx="2" fill="#111827"/>
-        
         <rect x="75" y="120" width="15" height="15" rx="2" fill="#111827"/>
         <rect x="100" y="120" width="15" height="15" rx="2" fill="#ED4690"/>
-        <rect x="125" y="125" width="20" height="20" rx="3" fill="#111827"/>
-        <rect x="75" y="145" width="20" height="20" rx="3" fill="#111827"/>
-        <rect x="110" y="145" width="35" height="20" rx="3" fill="#ED4690"/>
       </svg>
     `;
+  }
+
+  const btnCopyLiveUrl = document.getElementById('btn-copy-live-url');
+  if (btnCopyLiveUrl) {
+    btnCopyLiveUrl.addEventListener('click', () => {
+      const currentUrl = window.location.href;
+      navigator.clipboard.writeText(currentUrl).then(() => {
+        showToast("Hosted URL copied to clipboard!");
+      });
+    });
   }
 
   // --- Fullscreen Kiosk Mode ---

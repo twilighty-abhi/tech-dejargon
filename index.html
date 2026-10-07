@@ -369,12 +369,27 @@
   <div class="modal-overlay hidden" id="qr-modal">
     <div class="modal-card qr-card-modal">
       <button class="modal-close-btn" id="qr-close">&times;</button>
-      <h3>Scan to Open on Mobile</h3>
-      <p>Summit attendees can try the De-jargoniser on their phones!</p>
-      <div class="qr-code-placeholder" id="qr-code-container">
-        <!-- SVG QR Code rendered dynamically -->
+      <div class="qr-header">
+        <span class="quiz-badge">Booth Mobile Access</span>
+        <h3>Scan to Open on Mobile</h3>
+        <p>Summit attendees can scan this QR code with their phone's camera to run the De-jargoniser live!</p>
       </div>
-      <p class="qr-url-text">https://idlistack.com</p>
+
+      <div class="qr-code-placeholder" id="qr-code-container">
+        <!-- Real Scannable QR Code generated for current live URL -->
+      </div>
+
+      <div class="qr-url-box">
+        <span class="qr-url-label">Current Hosted URL:</span>
+        <a href="#" id="qr-live-url" target="_blank" rel="noopener noreferrer" class="qr-url-link">Loading URL...</a>
+      </div>
+
+      <div class="modal-actions" style="justify-content: center; width: 100%;">
+        <button id="btn-copy-live-url" class="btn-secondary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          Copy URL
+        </button>
+      </div>
     </div>
   </div>
 
@@ -385,6 +400,7 @@
 
   <!-- Scripts -->
   <script src="js/dictionary.js"></script>
+  <script src="js/qrcode.min.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
