@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeQuizQuestions = [];
   let currentQuizIndex = 0;
   let quizScore = 0;
-  let selectedQuizRoundCount = 5;
+  const QUIZ_ROUND_SIZE = 5; // Always exactly 5 questions per quiz session
   let currentCategoryFilter = "all";
   let currentSearchQuery = "";
 
@@ -759,7 +759,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnRetakeQuiz = document.getElementById('btn-retake-quiz');
   const btnCopyScoreShare = document.getElementById('btn-copy-score-share');
   const btnDownloadScorecard = document.getElementById('btn-download-scorecard');
-  const btnQuizReshuffle = document.getElementById('btn-quiz-reshuffle');
 
   // Google Sheet Backend Integration Elements
   const sheetModal = document.getElementById('sheet-modal');
@@ -781,22 +780,18 @@ document.addEventListener('DOMContentLoaded', () => {
     return array;
   }
 
-  // Generate a randomized quiz session with shuffled questions and shuffled answer options
-  function startNewQuizSession(count = selectedQuizRoundCount) {
+  // Automatically serve exactly 5 questions from the 36-question bank,
+  // randomized in different orders with shuffled options behind the scenes
+  function startNewQuizSession() {
     if (typeof SUMMIT_QUIZ_QUESTIONS === 'undefined' || !SUMMIT_QUIZ_QUESTIONS.length) return;
 
-    // 1. Shuffle full question pool
+    // 1. Automatically shuffle full question pool behind the scenes
     const pool = shuffleArray(SUMMIT_QUIZ_QUESTIONS);
 
-    // 2. Determine session question count
-    const sessionSize = (count === 'all' || count >= pool.length)
-      ? pool.length
-      : Math.max(1, parseInt(count, 10));
+    // 2. Automatically pick exactly 5 questions
+    const chosenQuestions = pool.slice(0, QUIZ_ROUND_SIZE);
 
-    // 3. Slice questions for this session
-    const chosenQuestions = pool.slice(0, sessionSize);
-
-    // 4. For every question, shuffle answer choices while re-mapping correct answer index
+    // 3. For each question, automatically shuffle the 4 options and map correct answer
     activeQuizQuestions = chosenQuestions.map(q => {
       const correctText = q.options[q.answerIndex ?? 0];
       const shuffledOptions = shuffleArray(q.options);
@@ -822,34 +817,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   btnQuiz.addEventListener('click', () => {
-    startNewQuizSession(selectedQuizRoundCount);
+    startNewQuizSession();
     quizModal.classList.remove('hidden');
   });
 
   quizClose.addEventListener('click', () => {
     quizModal.classList.add('hidden');
   });
-
-  // Wire up Round Size pills
-  const quizModePills = document.querySelectorAll('.quiz-mode-pill[data-count]');
-  quizModePills.forEach(pill => {
-    pill.addEventListener('click', () => {
-      quizModePills.forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      const countVal = pill.getAttribute('data-count');
-      selectedQuizRoundCount = countVal === 'all' ? 'all' : parseInt(countVal, 10);
-      startNewQuizSession(selectedQuizRoundCount);
-      showToast(`🔀 New ${countVal === 'all' ? 'Full' : countVal + '-question'} round generated!`);
-    });
-  });
-
-  // Wire up manual reshuffle button
-  if (btnQuizReshuffle) {
-    btnQuizReshuffle.addEventListener('click', () => {
-      startNewQuizSession(selectedQuizRoundCount);
-      showToast('🔀 Shuffled new random questions & answers!');
-    });
-  }
 
   function renderQuizQuestion() {
     if (!activeQuizQuestions.length || currentQuizIndex >= activeQuizQuestions.length) return;
@@ -1198,8 +1172,8 @@ function doGet(e) {
 
   if (btnRetakeQuiz) {
     btnRetakeQuiz.addEventListener('click', () => {
-      startNewQuizSession(selectedQuizRoundCount);
-      showToast("🔄 Fresh round loaded with new randomized questions & options!");
+      startNewQuizSession();
+      showToast("🔄 Fresh 5-question round loaded with new questions & options!");
     });
   }
 
