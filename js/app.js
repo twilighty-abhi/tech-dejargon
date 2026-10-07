@@ -315,9 +315,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return `
       <div class="match-reference-indicator ${pulseClass}">
-        <span class="ref-icon">${icon}</span>
-        <span class="ref-label">Referring to:</span>
-        <span class="ref-term-badge" data-term="${escapeHtml(item.term)}" title="Click to fill in full term '${escapeHtml(item.term)}'">${escapeHtml(item.term)}</span>
+        <div class="ref-main-group">
+          <span class="ref-icon">${icon}</span>
+          <span class="ref-label">Referring to:</span>
+          <span class="ref-term-badge" data-term="${escapeHtml(item.term)}" title="Click to fill in full term '${escapeHtml(item.term)}'">${escapeHtml(item.term)}</span>
+        </div>
         <span class="ref-category-badge">${escapeHtml(item.category)}</span>
         ${hintText}
       </div>
