@@ -1050,9 +1050,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (selectedIdx === correctIdx) {
       quizScore++;
-      showToast("🎉 Correct! Great open-source mastery!");
-    } else {
-      showToast("💡 Keep exploring! Open-source empowers.");
     }
 
     if (quizProgress) {
@@ -1066,9 +1063,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnNext = document.getElementById('btn-next-quiz');
     btnNext.disabled = false;
 
-    // Smoothly scroll down to feedback / next button so mobile users see it immediately
+    // Smoothly ensure feedback and next button are visible on mobile screens
     setTimeout(() => {
-      if (btnNext) {
+      const modalScrollContainer = document.querySelector('#quiz-modal .modal-card');
+      if (modalScrollContainer) {
+        modalScrollContainer.scrollTo({
+          top: modalScrollContainer.scrollHeight,
+          behavior: 'smooth'
+        });
+      } else if (btnNext) {
         btnNext.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     }, 60);
