@@ -546,10 +546,27 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fillText(line, x, y);
   }
 
-  // --- Summit Mini Quiz ---
+  // --- Enhanced Open Source Quiz & Scorecard System ---
+  const quizOngoingView = document.getElementById('quiz-ongoing-view');
+  const quizScorecardView = document.getElementById('quiz-scorecard-view');
+  const quizTag = document.getElementById('quiz-tag');
+  const quizProgress = document.getElementById('quiz-progress');
+  const quizProgressFill = document.getElementById('quiz-progress-fill');
+  const scorecardNameInput = document.getElementById('scorecard-name-input');
+  const scDisplayName = document.getElementById('sc-display-name');
+  const scScoreNum = document.getElementById('sc-score-num');
+  const scRankTitle = document.getElementById('sc-rank-title');
+  const scRankDesc = document.getElementById('sc-rank-desc');
+  const scAccuracyVal = document.getElementById('sc-accuracy-val');
+  const btnRetakeQuiz = document.getElementById('btn-retake-quiz');
+  const btnCopyScoreShare = document.getElementById('btn-copy-score-share');
+  const btnDownloadScorecard = document.getElementById('btn-download-scorecard');
+
   btnQuiz.addEventListener('click', () => {
     currentQuizIndex = 0;
     quizScore = 0;
+    if (quizOngoingView) quizOngoingView.classList.remove('hidden');
+    if (quizScorecardView) quizScorecardView.classList.add('hidden');
     renderQuizQuestion();
     quizModal.classList.remove('hidden');
   });
@@ -560,16 +577,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderQuizQuestion() {
     const q = SUMMIT_QUIZ_QUESTIONS[currentQuizIndex];
-    document.getElementById('quiz-title').textContent = "De-jargon Quiz Challenge";
-    document.getElementById('quiz-progress').textContent = `Question ${currentQuizIndex + 1} of ${SUMMIT_QUIZ_QUESTIONS.length} • Score: ${quizScore}`;
-    document.getElementById('quiz-question-text').textContent = q.question;
+    if (!q) return;
 
+    if (quizTag) quizTag.textContent = q.tag || "🚀 Open Source Apps";
+    if (quizProgress) {
+      quizProgress.textContent = `Question ${currentQuizIndex + 1} of ${SUMMIT_QUIZ_QUESTIONS.length} • Score: ${quizScore}`;
+    }
+    if (quizProgressFill) {
+      const pct = Math.round(((currentQuizIndex + 1) / SUMMIT_QUIZ_QUESTIONS.length) * 100);
+      quizProgressFill.style.width = `${pct}%`;
+    }
+
+    document.getElementById('quiz-question-text').textContent = q.question;
     const optContainer = document.getElementById('quiz-options');
     optContainer.innerHTML = '';
     const feedbackBox = document.getElementById('quiz-feedback');
     feedbackBox.classList.add('hidden');
     const btnNext = document.getElementById('btn-next-quiz');
     btnNext.disabled = true;
+    btnNext.textContent = (currentQuizIndex === SUMMIT_QUIZ_QUESTIONS.length - 1) ? 'View Official Scorecard 🏆' : 'Next Question';
 
     q.options.forEach((opt, idx) => {
       const btn = document.createElement('button');
@@ -595,10 +621,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (selectedIdx === correctIdx) {
       quizScore++;
+      showToast("🎉 Correct! Great open-source mastery!");
+    } else {
+      showToast("💡 Keep exploring! Open-source empowers.");
+    }
+
+    if (quizProgress) {
+      quizProgress.textContent = `Question ${currentQuizIndex + 1} of ${SUMMIT_QUIZ_QUESTIONS.length} • Score: ${quizScore}`;
     }
 
     const feedbackBox = document.getElementById('quiz-feedback');
-    feedbackBox.innerHTML = `<strong>${selectedIdx === correctIdx ? '🎉 Correct!' : '💡 Good Try!'}</strong> ${explanation}`;
+    feedbackBox.innerHTML = `<strong>${selectedIdx === correctIdx ? '🎉 Correct!' : '💡 Insight:'}</strong> ${explanation}`;
     feedbackBox.classList.remove('hidden');
 
     const btnNext = document.getElementById('btn-next-quiz');
@@ -610,21 +643,190 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentQuizIndex < SUMMIT_QUIZ_QUESTIONS.length) {
       renderQuizQuestion();
     } else {
-      // Quiz complete screen
-      document.getElementById('quiz-question-text').innerHTML = `
-        <div style="text-align: center; padding: 12px 0;">
-          <h4 style="font-size: 1.5rem; margin-bottom: 8px;">🏆 Challenge Complete!</h4>
-          <p style="font-size: 1.1rem; color: #10B981; font-weight: 700;">You scored ${quizScore} out of ${SUMMIT_QUIZ_QUESTIONS.length}!</p>
-          <p style="margin-top: 8px; color: #4B5563; font-size: 0.95rem;">Show this screen to the IDLIStack booth team to claim your summit stickers!</p>
-        </div>
-      `;
-      document.getElementById('quiz-options').innerHTML = '';
-      document.getElementById('quiz-feedback').classList.add('hidden');
-      const btnNext = document.getElementById('btn-next-quiz');
-      btnNext.textContent = 'Close & Return';
-      btnNext.onclick = () => quizModal.classList.add('hidden');
+      showQuizScorecard();
     }
   });
+
+  function showQuizScorecard() {
+    if (quizOngoingView) quizOngoingView.classList.add('hidden');
+    if (quizScorecardView) quizScorecardView.classList.remove('hidden');
+
+    const total = SUMMIT_QUIZ_QUESTIONS.length;
+    const pct = Math.round((quizScore / total) * 100);
+
+    if (scScoreNum) scScoreNum.textContent = `${quizScore} / ${total}`;
+    if (scAccuracyVal) scAccuracyVal.textContent = `${pct}%`;
+
+    let rankTitle = "💡 De-jargon Apprentice";
+    let rankDesc = "Great start! Visit the IDLIStack booth to explore sovereign open-source hosting.";
+
+    if (quizScore === total) {
+      rankTitle = "🏆 Chief Open Source Hero";
+      rankDesc = "Flawless! Master of self-hosted tech4good, data sovereignty & open-source infrastructure!";
+    } else if (quizScore >= total - 1) {
+      rankTitle = "🌟 Tech4Good Champion";
+      rankDesc = "Outstanding! You see through vendor hype, avoid lock-in, and build for true social impact.";
+    } else if (quizScore >= Math.floor(total / 2)) {
+      rankTitle = "🚀 Open Source Explorer";
+      rankDesc = "Well on your way to breaking vendor lock-in and scaling your NGO with open tools!";
+    }
+
+    if (scRankTitle) scRankTitle.textContent = rankTitle;
+    if (scRankDesc) scRankDesc.textContent = rankDesc;
+
+    if (scorecardNameInput && scDisplayName) {
+      scDisplayName.textContent = scorecardNameInput.value.trim() || "Social Impact Leader";
+      scorecardNameInput.oninput = (e) => {
+        scDisplayName.textContent = e.target.value.trim() || "Social Impact Leader";
+      };
+    }
+
+    showToast("🎉 Scorecard generated! Download or share your certificate.");
+  }
+
+  if (btnRetakeQuiz) {
+    btnRetakeQuiz.addEventListener('click', () => {
+      currentQuizIndex = 0;
+      quizScore = 0;
+      if (quizScorecardView) quizScorecardView.classList.add('hidden');
+      if (quizOngoingView) quizOngoingView.classList.remove('hidden');
+      renderQuizQuestion();
+    });
+  }
+
+  if (btnCopyScoreShare) {
+    btnCopyScoreShare.addEventListener('click', () => {
+      const name = scorecardNameInput ? scorecardNameInput.value.trim() : "Social Impact Leader";
+      const total = SUMMIT_QUIZ_QUESTIONS.length;
+      const shareText = `🏆 I scored ${quizScore}/${total} on the Open Source De-jargon Challenge at the IDLIStack Annual Summit 2026!\n\n` +
+        `Empowering non-profits with self-hosted, sovereign open-source tools. Check it out at https://idlistack.com\n\n` +
+        `#TechDejargon #IDLIStack #Tech4Good #OpenSource #AnnualSummit`;
+      
+      navigator.clipboard.writeText(shareText).then(() => {
+        showToast("Scorecard share text copied to clipboard!");
+      });
+    });
+  }
+
+  if (btnDownloadScorecard) {
+    btnDownloadScorecard.addEventListener('click', () => {
+      generateScorecardCanvasImage();
+    });
+  }
+
+  function generateScorecardCanvasImage() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 675;
+    const ctx = canvas.getContext('2d');
+
+    // Background gradient
+    const grad = ctx.createLinearGradient(0, 0, 1200, 675);
+    grad.addColorStop(0, '#FFFFFF');
+    grad.addColorStop(0.5, '#FFF2F8');
+    grad.addColorStop(1, '#FDF2F8');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1200, 675);
+
+    // Decorative Pink Outer & Inner Borders
+    ctx.strokeStyle = '#ED4690';
+    ctx.lineWidth = 12;
+    ctx.strokeRect(20, 20, 1160, 635);
+
+    ctx.strokeStyle = 'rgba(237, 70, 144, 0.25)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(36, 36, 1128, 603);
+
+    // Header: Logo & Summit Tag
+    ctx.fillStyle = '#111827';
+    ctx.font = 'bold 38px Inter, sans-serif';
+    ctx.fillText('iDLisTACk by T4GC', 60, 95);
+
+    ctx.fillStyle = '#ED4690';
+    ctx.font = 'bold 20px Inter, sans-serif';
+    ctx.fillText('ANNUAL SUMMIT 2026 • OFFICIAL CERTIFICATION', 60, 135);
+
+    // Certificate Title
+    ctx.fillStyle = '#64748B';
+    ctx.font = 'bold 18px Inter, sans-serif';
+    ctx.fillText('OPEN SOURCE TECH DE-JARGONISER SCORECARD', 60, 190);
+
+    // Attendee Name
+    const attendeeName = (scorecardNameInput && scorecardNameInput.value.trim()) || "Social Impact Leader";
+    ctx.fillStyle = '#0F172A';
+    ctx.font = 'bold 44px Inter, sans-serif';
+    ctx.fillText(attendeeName, 60, 245);
+
+    // Score & Rank Box
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = 'rgba(237, 70, 144, 0.3)';
+    ctx.lineWidth = 2;
+    roundRect(ctx, 60, 280, 1080, 175, 18);
+    ctx.fill();
+    ctx.stroke();
+
+    // Score Circle
+    ctx.fillStyle = '#ED4690';
+    ctx.beginPath();
+    ctx.arc(150, 367, 58, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 32px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${quizScore}/${SUMMIT_QUIZ_QUESTIONS.length}`, 150, 368);
+    ctx.font = 'bold 14px Inter, sans-serif';
+    ctx.fillText('SCORE', 150, 395);
+
+    // Rank & Details
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#111827';
+    ctx.font = 'bold 30px Inter, sans-serif';
+    const total = SUMMIT_QUIZ_QUESTIONS.length;
+    let rankText = (quizScore === total) ? '🏆 Chief Open Source Hero' : (quizScore >= total - 1 ? '🌟 Tech4Good Champion' : '🚀 Open Source Explorer');
+    ctx.fillText(rankText, 240, 345);
+
+    ctx.fillStyle = '#64748B';
+    ctx.font = '500 20px Inter, sans-serif';
+    ctx.fillText('Championing self-hosted open-source tools, data sovereignty & affordable tech.', 240, 385);
+    ctx.fillText('Verified proficiency in Ghost, Listmonk, Whatomate, KoboToolbox, and RAG architectures.', 240, 420);
+
+    // 3 Metrics badges
+    const pct = Math.round((quizScore / total) * 100);
+    drawMetricBadge(ctx, 60, 480, 340, 75, `${pct}% ACCURACY`, 'Quiz Performance');
+    drawMetricBadge(ctx, 430, 480, 340, 75, 'DATA SOVEREIGNTY', 'Self-Hosted Standard');
+    drawMetricBadge(ctx, 800, 480, 340, 75, 'ZERO VENDOR LOCK-IN', 'Community Owned');
+
+    // Footer
+    ctx.fillStyle = '#64748B';
+    ctx.font = '600 18px Inter, sans-serif';
+    ctx.fillText('Verified at IDLIStack Annual Summit • Open-source hosting made effortless • www.idlistack.com', 60, 615);
+
+    // Download PNG
+    const link = document.createElement('a');
+    const safeName = attendeeName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    link.download = `idlistack-scorecard-${safeName}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast("Downloaded official scorecard image!");
+  }
+
+  function drawMetricBadge(ctx, x, y, w, h, val, lbl) {
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#E2E8F0';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, x, y, w, h, 14);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#ED4690';
+    ctx.font = 'bold 20px Inter, sans-serif';
+    ctx.fillText(val, x + 20, y + 36);
+
+    ctx.fillStyle = '#64748B';
+    ctx.font = '500 14px Inter, sans-serif';
+    ctx.fillText(lbl, x + 20, y + 58);
+  }
 
   // --- Mobile QR Code Modal ---
   btnQr.addEventListener('click', () => {

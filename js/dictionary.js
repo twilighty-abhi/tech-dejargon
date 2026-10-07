@@ -661,43 +661,61 @@ const SUMMIT_BINGO_QUOTES = [
 // Interactive Summit Quiz Questions
 const SUMMIT_QUIZ_QUESTIONS = [
   {
-    question: "A developer tells you: 'Think of this like a waiter who shuttles food orders between you and the kitchen.' What are they describing?",
-    options: ["Docker", "An API", "A Cron Job", "SSL Certificate"],
-    answerIndex: 1,
-    explanation: "An API acts like a waiter! It delivers requests from your app to a server and brings back the information."
-  },
-  {
-    question: "Which open-source tool on IDLIStack is designed specifically to broadcast mass newsletters without paying Mailchimp's high monthly fees?",
+    id: "listmonk",
+    tag: "🚀 Open Source Apps",
+    question: "Your NGO has 60,000 community subscribers and commercial tools ask for ₹40,000/month. Which self-hosted open-source tool on IDLIStack lets you broadcast unlimited newsletters for pennies?",
     options: ["Listmonk", "Docker", "SSL Certificate", "Kubernetes"],
     answerIndex: 0,
-    explanation: "Listmonk is a blazingly fast, self-hosted open-source newsletter and mailing list manager hosted on IDLIStack!"
+    explanation: "Listmonk is a blazingly fast, open-source mailing list and newsletter manager hosted on IDLIStack that saves non-profits lakhs of rupees!"
   },
   {
-    question: "What is 'RAG' (Retrieval-Augmented Generation) best compared to when using AI for non-profits?",
+    id: "ghost",
+    tag: "🚀 Open Source Apps",
+    question: "Which modern open-source platform on IDLIStack allows impact teams to publish stories and membership newsletters with 0% platform transaction fees?",
+    options: ["Ghost", "Substack", "Medium", "X (Twitter)"],
+    answerIndex: 0,
+    explanation: "Ghost gives non-profits total ownership over donor relationships and membership tiers without taking a cut of your revenue!"
+  },
+  {
+    id: "whatomate",
+    tag: "💬 Community Engagement",
+    question: "An NGO wants to send automated relief announcements and run volunteer chatbots on WhatsApp without expensive enterprise aggregators. What open-source tool by Zerodha and T4GC powers this?",
+    options: ["Whatomate", "WordPress", "Discourse", "CiviCRM"],
+    answerIndex: 0,
+    explanation: "Whatomate is an open-source platform built by Zerodha and T4GC to automate WhatsApp broadcasts and chatbot responses for social impact!"
+  },
+  {
+    id: "kobotoolbox",
+    tag: "🌍 Grassroots Tech",
+    question: "Your field surveyors are heading into remote villages with zero mobile network. Which open-source tool lets them collect survey data completely offline and auto-sync when Wi-Fi returns?",
+    options: ["KoboToolbox / ODK", "Google Sheets", "Typeform", "Salesforce"],
+    answerIndex: 0,
+    explanation: "KoboToolbox and ODK are the global open-source standards for rugged offline field data collection!"
+  },
+  {
+    id: "rag",
+    tag: "🤖 AI & Data",
+    question: "What is 'RAG' (Retrieval-Augmented Generation) best compared to when building an AI chatbot for your NGO?",
     options: [
-      "A closed-book exam where the AI guesses",
-      "An open-book exam where the AI reads your verified NGO reports before answering",
-      "A script that deletes your files",
+      "An open-book exam where the AI reads only your verified NGO reports before answering",
+      "A closed-book exam where the AI makes up answers from memory",
+      "A script that deletes old database backups",
       "A proprietary algorithm locked behind a paywall"
     ],
-    answerIndex: 1,
-    explanation: "RAG gives the AI an open-book exam using your verified publications, preventing false information and hallucinations!"
+    answerIndex: 0,
+    explanation: "RAG prevents AI hallucinations by ensuring the model grounds its answers in your verified field publications!"
   },
   {
-    question: "Why should a social impact organization prefer open-source hosting on IDLIStack over proprietary SaaS?",
+    id: "sovereignty",
+    tag: "💡 Tech Philosophy",
+    question: "Why is open-source hosting on IDLIStack fundamentally better for Indian non-profits than proprietary commercial SaaS?",
     options: [
-      "It prevents vendor lock-in and lets you own your donor and beneficiary data forever",
-      "It makes the logo pink",
-      "It forces you to use command line tools only",
-      "It only works on Mondays"
+      "It prevents vendor lock-in, ensures full DPDP privacy compliance, and guarantees data sovereignty",
+      "It only runs on weekends",
+      "It forces everyone to write raw terminal code",
+      "It makes all websites look identical"
     ],
     answerIndex: 0,
-    explanation: "Open source on IDLIStack guarantees data sovereignty, avoids predatory price hikes, and gives non-profits total ownership!"
-  },
-  {
-    question: "Which open-source app by Zerodha and T4GC allows non-profits to run automated WhatsApp broadcasts and chatbots?",
-    options: ["Whatomate", "Ghost", "CiviCRM", "Nextcloud"],
-    answerIndex: 0,
-    explanation: "Whatomate is an open-source WhatsApp chatbot and broadcast automation platform developed for the social sector!"
+    explanation: "Open source guarantees that your beneficiary data, donor records, and software infrastructure belong to your organization forever!"
   }
 ];
