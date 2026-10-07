@@ -658,7 +658,7 @@ const SUMMIT_BINGO_QUOTES = [
   "“We chose open-source PostgreSQL to prevent proprietary vendor lock-in.”"
 ];
 
-// Interactive Summit Quiz Questions
+// Interactive Summit Quiz Question Bank (24 Curated Questions)
 const SUMMIT_QUIZ_QUESTIONS = [
   {
     id: "listmonk",
@@ -717,5 +717,325 @@ const SUMMIT_QUIZ_QUESTIONS = [
     ],
     answerIndex: 0,
     explanation: "Open source guarantees that your beneficiary data, donor records, and software infrastructure belong to your organization forever!"
+  },
+  {
+    id: "api",
+    tag: "📊 Connectivity & Data",
+    question: "A developer tells you: 'Think of this like a waiter who shuttles food orders between you and the kitchen.' What are they describing?",
+    options: ["An API", "A Cron Job", "Docker", "SSL Certificate"],
+    answerIndex: 0,
+    explanation: "An API acts like a waiter! It delivers requests from your website to a database or server and brings back the information."
+  },
+  {
+    id: "docker",
+    tag: "⚙️ Cloud & Hosting",
+    question: "What is Docker best compared to in real life?",
+    options: [
+      "Standardized shipping containers that fit neatly on any ship, truck, or train",
+      "A locked bicycle in the rain",
+      "An expensive paper shredder",
+      "A manual spreadsheet"
+    ],
+    answerIndex: 0,
+    explanation: "Docker packages software into standardized shipping containers so it runs identically on any computer or server!"
+  },
+  {
+    id: "cron-job",
+    tag: "⚙️ Automation",
+    question: "Which tech term represents a punctual robot alarm clock that wakes up at the exact same minute every day to run chores?",
+    options: ["A Cron Job", "A Webhook", "A Firewall", "A DNS Record"],
+    answerIndex: 0,
+    explanation: "A Cron Job is an automated task scheduler that triggers tasks (like midnight backups or daily donor receipts) on a schedule!"
+  },
+  {
+    id: "webhook",
+    tag: "📊 Connectivity & Data",
+    question: "What is a 'Webhook' best compared to in everyday life?",
+    options: [
+      "A doorbell that rings the exact second a delivery arrives",
+      "A physical book on a shelf",
+      "A forgotten password",
+      "An unplugged printer"
+    ],
+    answerIndex: 0,
+    explanation: "A Webhook is an automated message sent the split second an event happens (like a successful online donation)!"
+  },
+  {
+    id: "ssl",
+    tag: "🔒 Security & Trust",
+    question: "Why does having an SSL Certificate matter for an NGO fundraising website?",
+    options: [
+      "It encrypts donor payment info and gives your site the green padlock of trust",
+      "It changes your fonts to italic",
+      "It sends WhatsApp messages to your staff",
+      "It automatically doubles your donations"
+    ],
+    answerIndex: 0,
+    explanation: "SSL encrypts sensitive traffic, keeping donor credit cards and passwords safe from eavesdroppers and browser security alerts!"
+  },
+  {
+    id: "mattermost",
+    tag: "🚀 Open Source Apps",
+    question: "Which open-source tool on IDLIStack provides a secure, self-hosted team chat platform like Slack without outside corporations scanning chats?",
+    options: ["Mattermost", "Ghost", "WordPress", "Docker"],
+    answerIndex: 0,
+    explanation: "Mattermost is a private, encrypted team collaboration platform that keeps sensitive beneficiary communications sovereign!"
+  },
+  {
+    id: "nextcloud",
+    tag: "🚀 Open Source Apps",
+    question: "Your donor policy strictly forbids storing sensitive beneficiary files on third-party commercial clouds. What open-source tool gives you a private Google Drive alternative?",
+    options: ["Nextcloud", "Substack", "Mailchimp", "Zapier"],
+    answerIndex: 0,
+    explanation: "Nextcloud gives non-profits sovereign cloud storage, document collaboration, and calendars on servers you control!"
+  },
+  {
+    id: "fms",
+    tag: "🚀 Open Source Apps",
+    question: "What in-house open-source application was built specifically by T4GC for Indian impact organizations to manage donors and generate 80G receipts?",
+    options: ["FMS (Fundraising Management System)", "Salesforce", "Shopify", "HubSpot"],
+    answerIndex: 0,
+    explanation: "FMS was developed in-house by T4GC to automate donor management and compliant 80G tax receipts for Indian non-profits!"
+  },
+  {
+    id: "rforum",
+    tag: "🚀 Open Source Apps",
+    question: "Which open-source tool developed by T4GC allows live participatory audience voting and Q&A during summits without per-event fees?",
+    options: ["rForum", "Listmonk", "Nextcloud", "Supabase"],
+    answerIndex: 0,
+    explanation: "rForum is an open-source live audience engagement and town hall polling tool created by T4GC!"
+  },
+  {
+    id: "metabase",
+    tag: "🚀 Open Source Apps",
+    question: "Which open-source tool connects directly to your databases and turns raw rows of data into beautiful impact charts for donor reports?",
+    options: ["Metabase", "Docker", "Let's Encrypt", "Git"],
+    answerIndex: 0,
+    explanation: "Metabase lets non-technical team members ask questions and generate visual impact charts without writing complex code!"
+  },
+  {
+    id: "baserow",
+    tag: "🚀 Open Source Apps",
+    question: "Your team loves Airtable's interface, but you are hitting strict row limits on the free plan. Which open-source tool provides a limitless self-hosted alternative?",
+    options: ["Baserow / NocoDB", "WordPress", "Jitsi Meet", "Whatomate"],
+    answerIndex: 0,
+    explanation: "Baserow and NocoDB are open-source relational databases with spreadsheet-like interfaces that avoid commercial SaaS row paywalls!"
+  },
+  {
+    id: "jitsi",
+    tag: "🚀 Open Source Apps",
+    question: "Which open-source tool lets non-profits hold unlimited encrypted video meetings directly in the browser without Zoom licenses or account signups?",
+    options: ["Jitsi Meet", "Listmonk", "CiviCRM", "Ghost"],
+    answerIndex: 0,
+    explanation: "Jitsi Meet provides fully encrypted, browser-based video calling with zero license fees or user account requirements!"
+  },
+  {
+    id: "civicrm",
+    tag: "🚀 Open Source Apps",
+    question: "Which open-source CRM is built specifically for civil society, grant deliverables, and volunteer networks rather than commercial sales pipelines?",
+    options: ["CiviCRM / ERPNext", "Salesforce", "Pipedrive", "Zoho CRM"],
+    answerIndex: 0,
+    explanation: "CiviCRM is an open-source CRM specifically tailored to the unique campaign and grant tracking needs of non-profits!"
+  },
+  {
+    id: "vector-db",
+    tag: "🤖 AI & Data",
+    question: "How does a Vector Database search documents differently from a traditional keyword search?",
+    options: [
+      "It searches by conceptual meaning rather than exact word spelling",
+      "It only searches for files created on Tuesdays",
+      "It deletes all words that are not in English",
+      "It prints documents on physical paper"
+    ],
+    answerIndex: 0,
+    explanation: "Vector databases use mathematical embeddings to understand the meaning of concepts, finding relevant research even with different words!"
+  },
+  {
+    id: "zero-trust",
+    tag: "🔒 Security & Trust",
+    question: "What is the core philosophy of 'Zero-Trust' cybersecurity?",
+    options: [
+      "Never trust, always verify: putting fingerprint locks on every internal door",
+      "Trusting everyone on the office Wi-Fi automatically",
+      "Writing passwords on sticky notes",
+      "Never using any computer passwords"
+    ],
+    answerIndex: 0,
+    explanation: "Zero-Trust assumes threats can exist inside the network, requiring continuous verification on every single file access!"
+  },
+  {
+    id: "dpdp",
+    tag: "🔒 Security & Trust",
+    question: "What does compliance with India's DPDP Act require from non-profits collecting citizen data?",
+    options: [
+      "Explicit informed consent, clear purpose specification, and strict data protection",
+      "Sharing citizen phone numbers with commercial advertisers",
+      "Stamping paper documents with wax",
+      "Keeping data on unencrypted USB sticks"
+    ],
+    answerIndex: 0,
+    explanation: "The DPDP Act mandates clear consent, purpose limitation, and secure handling for all personal data collected by organizations!"
+  },
+  {
+    id: "offline-first",
+    tag: "🌍 Grassroots Tech",
+    question: "What is an 'Offline-First' app best compared to in everyday life?",
+    options: [
+      "An e-reader that holds all your books locally and only connects to sync",
+      "A landline phone that only works when plugged in",
+      "A physical television broadcast",
+      "A megaphone"
+    ],
+    answerIndex: 0,
+    explanation: "Offline-first apps store data locally so volunteers can work in remote areas with zero cell coverage, auto-syncing later!"
+  },
+  {
+    id: "load-balancer",
+    tag: "⚙️ Cloud & Hosting",
+    question: "What does a Load Balancer do when an NGO's fundraising campaign goes viral on TV?",
+    options: [
+      "Distributes incoming website visitors evenly across multiple server lanes so the site doesn't crash",
+      "Disconnects the website from the internet",
+      "Sends emails to everyone on the internet",
+      "Turns off the database to save electricity"
+    ],
+    answerIndex: 0,
+    explanation: "A Load Balancer acts like a traffic coordinator at a toll plaza, waving incoming visitor traffic across open server replicas!"
+  },
+  {
+    id: "supabase",
+    tag: "🚀 Open Source Apps",
+    question: "Your NGO needs an instant backend database, real-time authentication, and auto-generated APIs without Firebase's escalating cloud costs. What open-source tool on IDLIStack provides this?",
+    options: ["Supabase", "Kubernetes", "Apache Kafka", "Terraform"],
+    answerIndex: 0,
+    explanation: "Supabase provides an open-source Firebase alternative built on resilient PostgreSQL, keeping data fully under your NGO's control!"
+  },
+  {
+    id: "formbricks",
+    tag: "🚀 Open Source Apps",
+    question: "You want to gather beneficiary feedback through clean multi-step survey forms without paying high Typeform subscription rates. Which open-source tool hosted on IDLIStack does this?",
+    options: ["Formbricks", "Nginx", "Git", "Redis"],
+    answerIndex: 0,
+    explanation: "Formbricks is an open-source survey and experience management suite that lets non-profits collect unlimited responses privately!"
+  },
+  {
+    id: "posthog",
+    tag: "🚀 Open Source Apps",
+    question: "An NGO wants to understand which donation pages donors visit without sending private user data to Google Analytics. What open-source product analytics tool solves this?",
+    options: ["PostHog", "WordPerfect", "cURL", "Bootstrap"],
+    answerIndex: 0,
+    explanation: "PostHog is an open-source analytics platform that non-profits can self-host to respect user privacy and avoid third-party ad tracking!"
+  },
+  {
+    id: "discourse",
+    tag: "🚀 Open Source Apps",
+    question: "Which open-source community discussion platform powers long-form, searchable knowledge sharing for global civic tech networks?",
+    options: ["Discourse", "Docker", "SSL", "Cron Job"],
+    answerIndex: 0,
+    explanation: "Discourse is the premier open-source discussion platform that organizes community dialogue into searchable, civil knowledge hubs!"
+  },
+  {
+    id: "vendor-lock-in",
+    tag: "💡 Tech Philosophy",
+    question: "What does 'Vendor Lock-in' mean for a non-profit organization?",
+    options: [
+      "Being trapped in a proprietary software ecosystem where migrating donor data elsewhere is exorbitantly expensive or impossible",
+      "A locked server cabinet in an office",
+      "A software security feature that prevents computer theft",
+      "A two-factor authentication keycard"
+    ],
+    answerIndex: 0,
+    explanation: "Vendor lock-in happens when proprietary SaaS providers make it painful or costly to export your own community data when prices rise!"
+  },
+  {
+    id: "agpl-mit",
+    tag: "💡 Tech Philosophy",
+    question: "Why does IDLIStack champion copyleft and open-source licenses like AGPL and MIT for public-good tech?",
+    options: [
+      "They ensure software remains free, openly auditable, and cannot be privatized behind corporate paywalls",
+      "They make software run twice as fast on older phones",
+      "They require every user to pay annual licensing fees",
+      "They only allow government employees to view code"
+    ],
+    answerIndex: 0,
+    explanation: "Open-source licenses legally guarantee that software created for the public good stays accessible and transparent for all communities forever!"
+  },
+  {
+    id: "cicd",
+    tag: "⚙️ Automation",
+    question: "What is a 'CI/CD Pipeline' best compared to in an NGO's operations?",
+    options: [
+      "An automated inspection and delivery conveyor belt that tests software changes and deploys them without human panic",
+      "A physical water pipeline to an office",
+      "A legal contract signed by donors",
+      "A spreadsheet where volunteers log their hours"
+    ],
+    answerIndex: 0,
+    explanation: "CI/CD automates testing and server deployment, ensuring bug-free updates reach field workers automatically!"
+  },
+  {
+    id: "321-backup",
+    tag: "🔒 Security & Trust",
+    question: "What is the golden '3-2-1 Rule' for protecting irreplaceable community and beneficiary data?",
+    options: [
+      "Keep 3 copies of data on 2 different media types, with 1 copy stored securely offsite",
+      "Check email 3 times a day for 2 minutes using 1 computer",
+      "Store data on 3 laptops owned by 2 volunteers in 1 office",
+      "Restart your computer 3 times every 2 weeks"
+    ],
+    answerIndex: 0,
+    explanation: "The 3-2-1 backup rule ensures that even if ransomware, flood, or server hardware failures strike, your non-profit's data is never lost!"
+  },
+  {
+    id: "git",
+    tag: "⚙️ Automation",
+    question: "A volunteer developer asks: 'Have you committed that to Git?' What is Git best compared to?",
+    options: [
+      "A magical time machine that tracks every change to documents with an infinite undo button and audit trail",
+      "A social media messaging app",
+      "A brand of computer monitors",
+      "A digital credit card for server bills"
+    ],
+    answerIndex: 0,
+    explanation: "Git tracks historical changes to software and documents, letting multiple team members collaborate without overwriting each other!"
+  },
+  {
+    id: "monolith-microservices",
+    tag: "⚙️ Cloud & Hosting",
+    question: "When developers debate 'Monolith vs Microservices', what is the practical difference for an NGO?",
+    options: [
+      "A Monolith is a single unified Swiss Army knife app, while Microservices are separate specialized toolboxes connected by wires",
+      "A Monolith is always broken, and Microservices are always free",
+      "Monoliths only run on Linux, while Microservices only run on Windows",
+      "Microservices do not require any computers or servers"
+    ],
+    answerIndex: 0,
+    explanation: "Monoliths keep everything in one tidy application, while microservices split tasks into independent cooperating services!"
+  },
+  {
+    id: "encryption",
+    tag: "🔒 Security & Trust",
+    question: "Why must beneficiary health and identity records be encrypted both 'In Transit' and 'At Rest'?",
+    options: [
+      "To ensure data is scrambled like secret code both while travelling over the internet AND while sitting on hard drives",
+      "To make files smaller so they fit onto floppy disks",
+      "To prevent field volunteers from reading donor names",
+      "To automatically translate English records into Hindi"
+    ],
+    answerIndex: 0,
+    explanation: "End-to-end encryption guarantees that eavesdroppers on Wi-Fi or unauthorized physical hard drive access cannot read sensitive citizen files!"
+  },
+  {
+    id: "localhost",
+    tag: "⚙️ Cloud & Hosting",
+    question: "What does 'Localhost' (or 127.0.0.1) mean when testing an application before publishing it online?",
+    options: [
+      "'This very computer right in front of me' — a private testing playground before releasing to the world",
+      "A website hosted in New York City",
+      "A public Wi-Fi hotspot in an airport",
+      "A server owned by the government"
+    ],
+    answerIndex: 0,
+    explanation: "Localhost refers to your local machine! It lets team members test apps locally before deploying them live on IDLIStack."
   }
 ];

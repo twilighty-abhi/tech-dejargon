@@ -49,8 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentActiveId = "api";
   let isRecording = false;
   let recognition = null;
+  let activeQuizQuestions = [];
   let currentQuizIndex = 0;
   let quizScore = 0;
+  let selectedQuizRoundCount = 5;
   let currentCategoryFilter = "all";
   let currentSearchQuery = "";
 
@@ -561,13 +563,60 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnRetakeQuiz = document.getElementById('btn-retake-quiz');
   const btnCopyScoreShare = document.getElementById('btn-copy-score-share');
   const btnDownloadScorecard = document.getElementById('btn-download-scorecard');
+  const btnQuizReshuffle = document.getElementById('btn-quiz-reshuffle');
 
-  btnQuiz.addEventListener('click', () => {
+  // Fisher-Yates array shuffling algorithm
+  function shuffleArray(arr) {
+    const array = [...arr];
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  // Generate a randomized quiz session with shuffled questions and shuffled answer options
+  function startNewQuizSession(count = selectedQuizRoundCount) {
+    if (typeof SUMMIT_QUIZ_QUESTIONS === 'undefined' || !SUMMIT_QUIZ_QUESTIONS.length) return;
+
+    // 1. Shuffle full question pool
+    const pool = shuffleArray(SUMMIT_QUIZ_QUESTIONS);
+
+    // 2. Determine session question count
+    const sessionSize = (count === 'all' || count >= pool.length)
+      ? pool.length
+      : Math.max(1, parseInt(count, 10));
+
+    // 3. Slice questions for this session
+    const chosenQuestions = pool.slice(0, sessionSize);
+
+    // 4. For every question, shuffle answer choices while re-mapping correct answer index
+    activeQuizQuestions = chosenQuestions.map(q => {
+      const correctText = q.options[q.answerIndex ?? 0];
+      const shuffledOptions = shuffleArray(q.options);
+      const newAnswerIndex = shuffledOptions.indexOf(correctText);
+
+      return {
+        id: q.id,
+        tag: q.tag,
+        question: q.question,
+        options: shuffledOptions,
+        answerIndex: newAnswerIndex,
+        explanation: q.explanation
+      };
+    });
+
     currentQuizIndex = 0;
     quizScore = 0;
+
     if (quizOngoingView) quizOngoingView.classList.remove('hidden');
     if (quizScorecardView) quizScorecardView.classList.add('hidden');
+
     renderQuizQuestion();
+  }
+
+  btnQuiz.addEventListener('click', () => {
+    startNewQuizSession(selectedQuizRoundCount);
     quizModal.classList.remove('hidden');
   });
 
@@ -575,16 +624,38 @@ document.addEventListener('DOMContentLoaded', () => {
     quizModal.classList.add('hidden');
   });
 
+  // Wire up Round Size pills
+  const quizModePills = document.querySelectorAll('.quiz-mode-pill[data-count]');
+  quizModePills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      quizModePills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const countVal = pill.getAttribute('data-count');
+      selectedQuizRoundCount = countVal === 'all' ? 'all' : parseInt(countVal, 10);
+      startNewQuizSession(selectedQuizRoundCount);
+      showToast(`🔀 New ${countVal === 'all' ? 'Full' : countVal + '-question'} round generated!`);
+    });
+  });
+
+  // Wire up manual reshuffle button
+  if (btnQuizReshuffle) {
+    btnQuizReshuffle.addEventListener('click', () => {
+      startNewQuizSession(selectedQuizRoundCount);
+      showToast('🔀 Shuffled new random questions & answers!');
+    });
+  }
+
   function renderQuizQuestion() {
-    const q = SUMMIT_QUIZ_QUESTIONS[currentQuizIndex];
+    if (!activeQuizQuestions.length || currentQuizIndex >= activeQuizQuestions.length) return;
+    const q = activeQuizQuestions[currentQuizIndex];
     if (!q) return;
 
     if (quizTag) quizTag.textContent = q.tag || "🚀 Open Source Apps";
     if (quizProgress) {
-      quizProgress.textContent = `Question ${currentQuizIndex + 1} of ${SUMMIT_QUIZ_QUESTIONS.length} • Score: ${quizScore}`;
+      quizProgress.textContent = `Question ${currentQuizIndex + 1} of ${activeQuizQuestions.length} • Score: ${quizScore}`;
     }
     if (quizProgressFill) {
-      const pct = Math.round(((currentQuizIndex + 1) / SUMMIT_QUIZ_QUESTIONS.length) * 100);
+      const pct = Math.round(((currentQuizIndex + 1) / activeQuizQuestions.length) * 100);
       quizProgressFill.style.width = `${pct}%`;
     }
 
@@ -595,7 +666,7 @@ document.addEventListener('DOMContentLoaded', () => {
     feedbackBox.classList.add('hidden');
     const btnNext = document.getElementById('btn-next-quiz');
     btnNext.disabled = true;
-    btnNext.textContent = (currentQuizIndex === SUMMIT_QUIZ_QUESTIONS.length - 1) ? 'View Official Scorecard 🏆' : 'Next Question';
+    btnNext.textContent = (currentQuizIndex === activeQuizQuestions.length - 1) ? 'View Official Scorecard 🏆' : 'Next Question';
 
     q.options.forEach((opt, idx) => {
       const btn = document.createElement('button');
@@ -627,7 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (quizProgress) {
-      quizProgress.textContent = `Question ${currentQuizIndex + 1} of ${SUMMIT_QUIZ_QUESTIONS.length} • Score: ${quizScore}`;
+      quizProgress.textContent = `Question ${currentQuizIndex + 1} of ${activeQuizQuestions.length} • Score: ${quizScore}`;
     }
 
     const feedbackBox = document.getElementById('quiz-feedback');
@@ -640,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btn-next-quiz').addEventListener('click', () => {
     currentQuizIndex++;
-    if (currentQuizIndex < SUMMIT_QUIZ_QUESTIONS.length) {
+    if (currentQuizIndex < activeQuizQuestions.length) {
       renderQuizQuestion();
     } else {
       showQuizScorecard();
@@ -651,7 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (quizOngoingView) quizOngoingView.classList.add('hidden');
     if (quizScorecardView) quizScorecardView.classList.remove('hidden');
 
-    const total = SUMMIT_QUIZ_QUESTIONS.length;
+    const total = activeQuizQuestions.length || 1;
     const pct = Math.round((quizScore / total) * 100);
 
     if (scScoreNum) scScoreNum.textContent = `${quizScore} / ${total}`;
@@ -663,10 +734,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (quizScore === total) {
       rankTitle = "🏆 Chief Open Source Hero";
       rankDesc = "Flawless! Master of self-hosted tech4good, data sovereignty & open-source infrastructure!";
-    } else if (quizScore >= total - 1) {
+    } else if (quizScore >= Math.ceil(total * 0.8)) {
       rankTitle = "🌟 Tech4Good Champion";
       rankDesc = "Outstanding! You see through vendor hype, avoid lock-in, and build for true social impact.";
-    } else if (quizScore >= Math.floor(total / 2)) {
+    } else if (quizScore >= Math.ceil(total * 0.5)) {
       rankTitle = "🚀 Open Source Explorer";
       rankDesc = "Well on your way to breaking vendor lock-in and scaling your NGO with open tools!";
     }
@@ -686,18 +757,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnRetakeQuiz) {
     btnRetakeQuiz.addEventListener('click', () => {
-      currentQuizIndex = 0;
-      quizScore = 0;
-      if (quizScorecardView) quizScorecardView.classList.add('hidden');
-      if (quizOngoingView) quizOngoingView.classList.remove('hidden');
-      renderQuizQuestion();
+      startNewQuizSession(selectedQuizRoundCount);
+      showToast("🔄 Fresh round loaded with new randomized questions & options!");
     });
   }
 
   if (btnCopyScoreShare) {
     btnCopyScoreShare.addEventListener('click', () => {
       const name = scorecardNameInput ? scorecardNameInput.value.trim() : "Social Impact Leader";
-      const total = SUMMIT_QUIZ_QUESTIONS.length;
+      const total = activeQuizQuestions.length || 1;
       const shareText = `🏆 I scored ${quizScore}/${total} on the Open Source De-jargon Challenge at the IDLIStack Annual Summit 2026!\n\n` +
         `Empowering non-profits with self-hosted, sovereign open-source tools. Check it out at https://idlistack.com\n\n` +
         `#TechDejargon #IDLIStack #Tech4Good #OpenSource #AnnualSummit`;
@@ -719,6 +787,7 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.width = 1200;
     canvas.height = 675;
     const ctx = canvas.getContext('2d');
+    const total = activeQuizQuestions.length || 1;
 
     // Background gradient
     const grad = ctx.createLinearGradient(0, 0, 1200, 675);
@@ -774,7 +843,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 32px Inter, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`${quizScore}/${SUMMIT_QUIZ_QUESTIONS.length}`, 150, 368);
+    ctx.fillText(`${quizScore}/${total}`, 150, 368);
     ctx.font = 'bold 14px Inter, sans-serif';
     ctx.fillText('SCORE', 150, 395);
 
@@ -782,14 +851,15 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.textAlign = 'left';
     ctx.fillStyle = '#111827';
     ctx.font = 'bold 30px Inter, sans-serif';
-    const total = SUMMIT_QUIZ_QUESTIONS.length;
-    let rankText = (quizScore === total) ? '🏆 Chief Open Source Hero' : (quizScore >= total - 1 ? '🌟 Tech4Good Champion' : '🚀 Open Source Explorer');
+    let rankText = (quizScore === total)
+      ? '🏆 Chief Open Source Hero'
+      : (quizScore >= Math.ceil(total * 0.8) ? '🌟 Tech4Good Champion' : (quizScore >= Math.ceil(total * 0.5) ? '🚀 Open Source Explorer' : '💡 De-jargon Apprentice'));
     ctx.fillText(rankText, 240, 345);
 
     ctx.fillStyle = '#64748B';
     ctx.font = '500 20px Inter, sans-serif';
     ctx.fillText('Championing self-hosted open-source tools, data sovereignty & affordable tech.', 240, 385);
-    ctx.fillText('Verified proficiency in Ghost, Listmonk, Whatomate, KoboToolbox, and RAG architectures.', 240, 420);
+    ctx.fillText('Verified proficiency in open-source tools, digital sovereignty & impact tech.', 240, 420);
 
     // 3 Metrics badges
     const pct = Math.round((quizScore / total) * 100);
