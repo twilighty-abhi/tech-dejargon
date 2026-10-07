@@ -950,23 +950,51 @@ document.addEventListener('DOMContentLoaded', () => {
     if (quizOngoingView) quizOngoingView.classList.remove('hidden');
     if (quizScorecardView) quizScorecardView.classList.add('hidden');
 
+    const quizCard = document.querySelector('.quiz-card');
+    if (quizCard) quizCard.scrollTop = 0;
+
     renderQuizQuestion();
   }
 
   btnQuiz.addEventListener('click', () => {
     startNewQuizSession();
     quizModal.classList.remove('hidden');
+    document.body.classList.add('modal-open');
+    const quizCard = document.querySelector('.quiz-card');
+    if (quizCard) quizCard.scrollTop = 0;
   });
 
   quizClose.addEventListener('click', () => {
     finalizeAndSyncQuizScore('modal_close');
     quizModal.classList.add('hidden');
+    document.body.classList.remove('modal-open');
+  });
+
+  // Close modal on backdrop click
+  quizModal.addEventListener('click', (e) => {
+    if (e.target === quizModal) {
+      finalizeAndSyncQuizScore('modal_close');
+      quizModal.classList.add('hidden');
+      document.body.classList.remove('modal-open');
+    }
+  });
+
+  // Close modal on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !quizModal.classList.contains('hidden')) {
+      finalizeAndSyncQuizScore('modal_close');
+      quizModal.classList.add('hidden');
+      document.body.classList.remove('modal-open');
+    }
   });
 
   function renderQuizQuestion() {
     if (!activeQuizQuestions.length || currentQuizIndex >= activeQuizQuestions.length) return;
     const q = activeQuizQuestions[currentQuizIndex];
     if (!q) return;
+
+    const quizCard = document.querySelector('.quiz-card');
+    if (quizCard) quizCard.scrollTop = 0;
 
     if (quizTag) quizTag.textContent = q.tag || "🚀 Open Source Apps";
     if (quizProgress) {
@@ -986,10 +1014,22 @@ document.addEventListener('DOMContentLoaded', () => {
     btnNext.disabled = true;
     btnNext.textContent = (currentQuizIndex === activeQuizQuestions.length - 1) ? 'View Official Scorecard 🏆' : 'Next Question';
 
+    const optionLetters = ['A', 'B', 'C', 'D'];
     q.options.forEach((opt, idx) => {
       const btn = document.createElement('button');
       btn.className = 'quiz-opt-btn';
-      btn.textContent = opt;
+
+      const letterSpan = document.createElement('span');
+      letterSpan.className = 'quiz-opt-letter';
+      letterSpan.textContent = optionLetters[idx] || `${idx + 1}`;
+
+      const textSpan = document.createElement('span');
+      textSpan.className = 'quiz-opt-text';
+      textSpan.textContent = opt;
+
+      btn.appendChild(letterSpan);
+      btn.appendChild(textSpan);
+
       btn.addEventListener('click', () => {
         handleQuizAnswer(idx, q.answerIndex, q.explanation);
       });
@@ -1025,6 +1065,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnNext = document.getElementById('btn-next-quiz');
     btnNext.disabled = false;
+
+    // Smoothly scroll down to feedback / next button so mobile users see it immediately
+    setTimeout(() => {
+      if (btnNext) {
+        btnNext.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 60);
   }
 
   document.getElementById('btn-next-quiz').addEventListener('click', () => {
@@ -1039,6 +1086,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function showQuizScorecard() {
     if (quizOngoingView) quizOngoingView.classList.add('hidden');
     if (quizScorecardView) quizScorecardView.classList.remove('hidden');
+
+    const quizCard = document.querySelector('.quiz-card');
+    if (quizCard) quizCard.scrollTop = 0;
 
     const total = activeQuizQuestions.length || 1;
     const pct = Math.round((quizScore / total) * 100);
